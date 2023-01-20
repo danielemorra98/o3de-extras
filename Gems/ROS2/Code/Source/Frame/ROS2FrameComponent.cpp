@@ -146,7 +146,6 @@ namespace ROS2
     {
         return m_isDynamic;
     }
-
     const ROS2FrameComponent* ROS2FrameComponent::GetParentROS2FrameComponent() const
     {
         return Internal::GetFirstROS2FrameAncestor(GetEntity());
