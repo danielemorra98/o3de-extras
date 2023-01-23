@@ -96,6 +96,7 @@ namespace ROS2
 
                 const double limitUpper = AZ::RadToDeg(joint->limits->upper);
                 const double limitLower = AZ::RadToDeg(joint->limits->lower);
+                AZStd::string jointName {joint->name.c_str()};
                 AZ_Printf(
                     "JointsMaker",
                     "Setting limits : upper: %.1f lower: %.1f (URDF:%f,%f)",
@@ -105,12 +106,13 @@ namespace ROS2
                     joint->limits->lower);
                 PhysX::EditorJointRequestBus::Event(
                     AZ::EntityComponentIdPair(followColliderEntityId, jointComponent->GetId()),
-                    [&rotation, &limitLower, &limitUpper](PhysX::EditorJointRequests* editorJointRequest)
+                    [&rotation, &limitLower, &limitUpper, &jointName](PhysX::EditorJointRequests* editorJointRequest)
                     {
                         editorJointRequest->SetVector3Value(PhysX::JointsComponentModeCommon::ParameterNames::Rotation, rotation);
                         editorJointRequest->SetLinearValuePair(
                             PhysX::JointsComponentModeCommon::ParameterNames::TwistLimits,
                             PhysX::AngleLimitsFloatPair(limitUpper, limitLower));
+                        editorJointRequest->SetStringValue(PhysX::JointsComponentModeCommon::ParameterNames::JointName, jointName);
                     });
                 followColliderEntity->Deactivate();
             }
