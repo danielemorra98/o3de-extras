@@ -99,11 +99,12 @@ namespace ROS2
                 AZStd::string jointName {joint->name.c_str()};
                 AZ_Printf(
                     "JointsMaker",
-                    "Setting limits : upper: %.1f lower: %.1f (URDF:%f,%f)",
+                    "Setting limits : upper: %.1f lower: %.1f (URDF:%f,%f); name: %s",
                     limitUpper,
                     limitLower,
                     joint->limits->upper,
-                    joint->limits->lower);
+                    joint->limits->lower,
+                    jointName.c_str());
                 PhysX::EditorJointRequestBus::Event(
                     AZ::EntityComponentIdPair(followColliderEntityId, jointComponent->GetId()),
                     [&rotation, &limitLower, &limitUpper, &jointName](PhysX::EditorJointRequests* editorJointRequest)
