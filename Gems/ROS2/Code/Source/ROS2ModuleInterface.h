@@ -17,6 +17,7 @@
 #include <Odometry/ROS2OdometrySensorComponent.h>
 #include <ROS2/Frame/ROS2FrameComponent.h>
 #include <ROS2/Manipulator/MotorizedJointComponent.h>
+#include <ROS2/Manipulator/JointPublisherComponent.h>
 #include <RobotControl/Controllers/AckermannController/AckermannControlComponent.h>
 #include <RobotControl/Controllers/RigidBodyController/RigidBodyTwistControlComponent.h>
 #include <RobotControl/ROS2RobotControlComponent.h>
@@ -59,7 +60,8 @@ namespace ROS2
                   ROS2SpawnPointComponent::CreateDescriptor(),
                   VehicleDynamics::VehicleModelComponent::CreateDescriptor(),
                   VehicleDynamics::WheelControllerComponent::CreateDescriptor(),
-                  MotorizedJointComponent::CreateDescriptor() });
+                  MotorizedJointComponent::CreateDescriptor()});
+                //   JointPublisherComponent::CreateDescriptor() });
         }
 
         //! Add required SystemComponents to the SystemEntity.
