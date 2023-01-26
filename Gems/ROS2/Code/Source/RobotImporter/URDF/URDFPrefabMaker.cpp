@@ -20,6 +20,7 @@
 #include <ROS2/ROS2GemUtilities.h>
 #include <ROS2/Spawner/SpawnerBus.h>
 #include <RobotControl/ROS2RobotControlComponent.h>
+#include <RobotImporter/URDFMetadataComponent.h>
 #include <RobotImporter/Utils/RobotImporterUtils.h>
 
 namespace ROS2
@@ -214,6 +215,7 @@ namespace ROS2
         MoveEntityToDefaultSpawnPoint(createEntityRoot.GetValue());
 
         auto contentEntityId = createEntityRoot.GetValue();
+        AddURDFMetadataComponent(contentEntityId, hierarchyMap);
         AddRobotControl(contentEntityId);
 
         // Create prefab, save it to disk immediately
@@ -272,6 +274,17 @@ namespace ROS2
         m_collidersMaker.AddColliders(link, entityId);
         m_inertialsMaker.AddInertial(link->inertial, entityId);
         return AZ::Success(entityId);
+    }
+
+    void URDFPrefabMaker::AddURDFMetadataComponent(AZ::EntityId rootEntityId, const AZStd::unordered_map<AZ::Name, AZ::EntityId> & hierarchyMap)
+    {
+        const auto componentId = Utils::CreateComponent(rootEntityId, URDFMetadataComponent::TYPEINFO_Uuid());
+        if (componentId)
+        {
+            AZ::Entity* rootEntity = AzToolsFramework::GetEntityById(rootEntityId);
+            auto* component = Utils::GetGameOrEditorComponent<URDFMetadataComponent>(rootEntity);
+            component->SetHierarchy(hierarchyMap);
+        }
     }
 
     void URDFPrefabMaker::AddRobotControl(AZ::EntityId rootEntityId)
