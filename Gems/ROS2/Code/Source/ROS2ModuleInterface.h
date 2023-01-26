@@ -18,6 +18,7 @@
 #include <Odometry/ROS2OdometrySensorComponent.h>
 #include <ROS2/Frame/ROS2FrameComponent.h>
 #include <ROS2/Manipulator/MotorizedJointComponent.h>
+#include <ROS2/Manipulator/JointPublisherComponent.h>
 #include <RobotControl/Controllers/AckermannController/AckermannControlComponent.h>
 #include <RobotControl/Controllers/RigidBodyController/RigidBodyTwistControlComponent.h>
 #include <RobotControl/Controllers/SkidSteeringController/SkidSteeringControlComponent.h>
