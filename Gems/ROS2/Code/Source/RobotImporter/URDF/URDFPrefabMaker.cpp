@@ -177,6 +177,7 @@ namespace ROS2
 
         // Create the joints
         auto joints = Utils::GetAllJoints(m_model->root_link_->child_links);
+        AZStd::unordered_map<AZ::Name, AZ::EntityId> hierarchyMap;
         for (const auto& [name, jointPtr] : joints)
         {
             AZ_Assert(jointPtr, "joint %s is null", name.c_str());
@@ -202,6 +203,7 @@ namespace ROS2
                 {
                     m_status.emplace(name, AZStd::string::format("Failed:  %s", result.GetError().c_str()));
                 }
+                hierarchyMap[AZ::Name(name.c_str())] = childEntity.GetValue();
             }
             else
             {
