@@ -60,8 +60,9 @@ namespace ROS2
                   ROS2SpawnPointComponent::CreateDescriptor(),
                   VehicleDynamics::VehicleModelComponent::CreateDescriptor(),
                   VehicleDynamics::WheelControllerComponent::CreateDescriptor(),
-                  MotorizedJointComponent::CreateDescriptor()});
-                //   JointPublisherComponent::CreateDescriptor() });
+                  MotorizedJointComponent::CreateDescriptor(),
+                  URDFMetadataComponent::CreateDescriptor(),
+                  JointPublisherComponent::CreateDescriptor() });
         }
 
         //! Add required SystemComponents to the SystemEntity.
