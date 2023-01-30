@@ -26,6 +26,7 @@ namespace ROS2
         void Deactivate() override;
 
         void SetHierarchy(const AZStd::unordered_map<AZ::Name, AZ::EntityId> & hierarchyMap);
+        AZStd::unordered_map<AZ::Name, AZ::EntityId> GetHierarchy();
 
         // Required Reflect function.
         static void Reflect(AZ::ReflectContext* context);
