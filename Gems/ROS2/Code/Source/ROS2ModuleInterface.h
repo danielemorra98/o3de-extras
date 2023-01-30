@@ -68,7 +68,9 @@ namespace ROS2
                   VehicleDynamics::AckermannVehicleModelComponent::CreateDescriptor(),
                   VehicleDynamics::WheelControllerComponent::CreateDescriptor(),
                   VehicleDynamics::SkidSteeringModelComponent::CreateDescriptor(),
-                  MotorizedJointComponent::CreateDescriptor() });
+                  MotorizedJointComponent::CreateDescriptor(),
+                  URDFMetadataComponent::CreateDescriptor(),
+                  JointPublisherComponent::CreateDescriptor() });
         }
 
         //! Add required SystemComponents to the SystemEntity.
