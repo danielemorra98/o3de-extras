@@ -4,6 +4,8 @@
 #include <RobotImporter/URDFMetadataComponent.h>
 #include <rclcpp/publisher.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <control_msgs/action/follow_joint_trajectory.h>
 #include <AzCore/Component/TickBus.h>
 
 namespace ROS2
@@ -11,7 +13,7 @@ namespace ROS2
     //! A component responsible for storing the jointComponent tree structure
     //! and each of the joint's name as they are described in URDF
     class JointPublisherComponent
-        : public AZ::Component //URDFMetadataComponent
+        : public URDFMetadataComponent
         , public AZ::TickBus::Handler
     {
     public:
@@ -28,8 +30,9 @@ namespace ROS2
     private:
         void PublishMessage();
         void UpdateMessage();
+        void InitializeMap();
 
-        double GetJointPosition(const AZ::Entity* hingeEntity) const;
+        double GetJointPosition(const AZ::Component* hingeComponent) const;
         void InitializeJointStateMessage();
 
         std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::JointState>> m_jointstatePublisher;
