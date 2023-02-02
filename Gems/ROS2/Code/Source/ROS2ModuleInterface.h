@@ -18,6 +18,7 @@
 #include <ROS2/Frame/ROS2FrameComponent.h>
 #include <ROS2/Manipulator/MotorizedJointComponent.h>
 #include <ROS2/Manipulator/JointPublisherComponent.h>
+#include <ROS2/Manipulator/ManipulatorControllerComponent.h>
 #include <RobotControl/Controllers/AckermannController/AckermannControlComponent.h>
 #include <RobotControl/Controllers/RigidBodyController/RigidBodyTwistControlComponent.h>
 #include <RobotControl/ROS2RobotControlComponent.h>
@@ -62,7 +63,8 @@ namespace ROS2
                   VehicleDynamics::WheelControllerComponent::CreateDescriptor(),
                   MotorizedJointComponent::CreateDescriptor(),
                   URDFMetadataComponent::CreateDescriptor(),
-                  JointPublisherComponent::CreateDescriptor() });
+                  JointPublisherComponent::CreateDescriptor(),
+                  ManipulatorControllerComponent::CreateDescriptor() });
         }
 
         //! Add required SystemComponents to the SystemEntity.
