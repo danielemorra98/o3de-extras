@@ -36,6 +36,7 @@ set(FILES
         Source/Lidar/ROS2LidarSensorComponent.h
         Source/Manipulator/MotorizedJointComponent.cpp
         Source/Manipulator/JointPublisherComponent.cpp
+        Source/Manipulator/ManipulatorControllerComponent.cpp
         Source/Odometry/ROS2OdometrySensorComponent.cpp
         Source/Odometry/ROS2OdometrySensorComponent.h
         Source/RobotControl/Ackermann/AckermannSubscriptionHandler.cpp
