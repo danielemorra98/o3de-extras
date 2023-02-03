@@ -18,8 +18,19 @@ namespace ROS2
         using GoalHandleFollowJointTrajectory = rclcpp_action::ServerGoalHandle<control_msgs::action::FollowJointTrajectory>;
         using FollowJointTrajectory = control_msgs::action::FollowJointTrajectory;
         FollowJointTrajectoryActionServer();
+        // std::shared_ptr<GoalHandleFollowJointTrajectory> GetGoal();
 
-        rclcpp_action::Server<FollowJointTrajectory>::SharedPtr action_server_;
+        // bool m_goalExecution{false};
+        rclcpp_action::Server<FollowJointTrajectory>::SharedPtr m_actionServer;
+        std::shared_ptr<GoalHandleFollowJointTrajectory> m_goalHandle;
+
+        enum class GoalStatus
+        {
+            Pending,
+            Active,
+            Concluded
+        };
+        GoalStatus m_goalStatus = GoalStatus::Pending;
 
     protected:
         // callbacks for action_server_
@@ -52,10 +63,15 @@ namespace ROS2
 
     private:
         void InitializeMap();
+        void DebugTrajectoryExecution();
+        void ExecuteTrajectory(const trajectory_msgs::msg::JointTrajectory & trajectory);
 
         FollowJointTrajectoryActionServer m_actionServerClass;
         bool m_initialized{false};
+        bool m_debugBool{false};
         AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
+        trajectory_msgs::msg::JointTrajectory m_trajectory;
 
+        using FollowJointTrajectory = control_msgs::action::FollowJointTrajectory;
     };
 } // namespace ROS2

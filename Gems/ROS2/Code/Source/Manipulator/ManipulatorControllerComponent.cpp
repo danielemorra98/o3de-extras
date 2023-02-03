@@ -18,7 +18,7 @@ namespace ROS2
     {
         auto ros2Node = ROS2Interface::Get()->GetNode();
         // Create the ROS2 action server
-        this->action_server_ = rclcpp_action::create_server<FollowJointTrajectory>(
+        this->m_actionServer = rclcpp_action::create_server<FollowJointTrajectory>(
             ros2Node,
             "panda_arm_controller/follow_joint_trajectory",
             AZStd::bind(&FollowJointTrajectoryActionServer::goal_received_callback, this, AZStd::placeholders::_1, AZStd::placeholders::_2),
@@ -32,7 +32,7 @@ namespace ROS2
             std::shared_ptr<const FollowJointTrajectory::Goal> goal)
     {
         // Dummy implementation
-        // RCLCPP_INFO(this->get_logger(), "Received goal request with order %d", goal->order);
+        AZ_Printf("ManipulatorControllerComponent", "FollowJointTrajectory manipulator Goal received");
         (void)uuid;
         return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
     }
@@ -41,7 +41,7 @@ namespace ROS2
             const std::shared_ptr<GoalHandleFollowJointTrajectory> goal_handle)
     {
         // Dummy implementation
-        // RCLCPP_INFO(this->get_logger(), "Received request to cancel goal");
+        AZ_Printf("ManipulatorControllerComponent", "FollowJointTrajectory manipulator Goal canceled");
         (void)goal_handle;
         return rclcpp_action::CancelResponse::ACCEPT;
     }
@@ -50,9 +50,15 @@ namespace ROS2
             const std::shared_ptr<GoalHandleFollowJointTrajectory> goal_handle)
     {
         // Dummy implementation
-        auto result = std::make_shared<FollowJointTrajectory::Result>();
-        goal_handle->succeed(result);
+        AZ_Printf("ManipulatorControllerComponent", "FollowJointTrajectory manipulator Goal accepted");
+        this->m_goalHandle = goal_handle;
+        m_goalStatus = GoalStatus::Active;     
     }
+
+    // std::shared_ptr<GoalHandleFollowJointTrajectory> FollowJointTrajectoryActionServer::GetGoal()
+    // {
+
+    // }
 
 
     // ManipulatorControllerComponent class
@@ -117,6 +123,55 @@ namespace ROS2
     //     return position;
     // }
 
+    void ManipulatorControllerComponent::DebugTrajectoryExecution()
+    {
+        // Dummy-debug implementation
+        if(!m_debugBool)
+        {
+            std::shared_ptr<const FollowJointTrajectory::Goal> goal = m_actionServerClass.m_goalHandle->get_goal();
+            AZ_Printf("ManipulatorControllerComponent", "Executing manipulator goal");
+            AZ_Printf("ManipulatorControllerComponent", "First Trajectory Point: %f, %f, %f, %f, %f, %f, %f",
+                    goal->trajectory.points[0].positions[0],
+                    goal->trajectory.points[0].positions[1],
+                    goal->trajectory.points[0].positions[2],
+                    goal->trajectory.points[0].positions[3],
+                    goal->trajectory.points[0].positions[4],
+                    goal->trajectory.points[0].positions[5],
+                    goal->trajectory.points[0].positions[6]);
+                
+            m_debugBool = true;
+        }
+    }
+
+    void ManipulatorControllerComponent::ExecuteTrajectory(const trajectory_msgs::msg::JointTrajectory & trajectory)
+    {
+        if (m_trajectory.points.size() == 0)
+        {
+            m_trajectory = trajectory;
+        }
+
+        auto desired_goal = m_trajectory.points.front();
+        m_trajectory.points.erase(m_trajectory.points.begin());
+
+        // First point is the current state of the robot --> jump to the second point
+        if(desired_goal.time_from_start. < rclcpp::Duration(1e7)) // needs to be reviewed
+        {
+            ExecuteTrajectory(trajectory);
+            return;
+        }
+
+        // ComputeJointVelocity(desired_goal);
+
+        // SetVelocityJoints();
+
+        // If the trajectory is thoroughly executed set the status to Concluded
+        if (m_trajectory.points.size() == 0)
+        {
+            m_actionServerClass.m_goalStatus = GoalStatus::Concluded;
+        }
+        
+    }
+
     void ManipulatorControllerComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         if(!m_initialized)
@@ -124,6 +179,24 @@ namespace ROS2
             InitializeMap();
             m_initialized = true;
         }
+
+        AZ_Printf("ManipulatorControllerComponent", "Time: %fs and %fms", time.GetSeconds(), time.GetMilliseconds());
+
+        // // Goal Execution
+        // if (m_actionServerClass.m_goalStatus == GoalStatus::Active)
+        // {
+        //     // DebugTrajectoryExecution()
+
+        //     m_actionServerClass.m_goalHandle->get_goal()->trajectory;
+        //     ExecuteTrajectory(m_actionServerClass.m_goalHandle->get_goal()->trajectory);
+        // }
+
+        // if (m_goalStatus == GoalStatus::Concluded)
+        // {
+        //     m_goalStatus == GoalStatus::Pending;
+        //     auto result = std::make_shared<FollowJointTrajectory::Result>();
+        //     m_actionServerClass.m_goalHandle->succeed(result);
+        // }
     }
 
 } // namespace ROS2
