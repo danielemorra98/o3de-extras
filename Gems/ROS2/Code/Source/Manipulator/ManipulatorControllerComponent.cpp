@@ -53,6 +53,11 @@ namespace ROS2
         m_goalStatus = GoalStatus::Active;     
     }
 
+    // std::shared_ptr<GoalHandleFollowJointTrajectory> FollowJointTrajectoryActionServer::GetGoal()
+    // {
+
+    // }
+
 
     // ManipulatorControllerComponent class
     void ManipulatorControllerComponent::Activate()
@@ -270,6 +275,55 @@ namespace ROS2
             jointIndex++;
         }
 
+        
+    }
+
+    void ManipulatorControllerComponent::DebugTrajectoryExecution()
+    {
+        // Dummy-debug implementation
+        if(!m_debugBool)
+        {
+            std::shared_ptr<const FollowJointTrajectory::Goal> goal = m_actionServerClass.m_goalHandle->get_goal();
+            AZ_Printf("ManipulatorControllerComponent", "Executing manipulator goal");
+            AZ_Printf("ManipulatorControllerComponent", "First Trajectory Point: %f, %f, %f, %f, %f, %f, %f",
+                    goal->trajectory.points[0].positions[0],
+                    goal->trajectory.points[0].positions[1],
+                    goal->trajectory.points[0].positions[2],
+                    goal->trajectory.points[0].positions[3],
+                    goal->trajectory.points[0].positions[4],
+                    goal->trajectory.points[0].positions[5],
+                    goal->trajectory.points[0].positions[6]);
+                
+            m_debugBool = true;
+        }
+    }
+
+    void ManipulatorControllerComponent::ExecuteTrajectory(const trajectory_msgs::msg::JointTrajectory & trajectory)
+    {
+        if (m_trajectory.points.size() == 0)
+        {
+            m_trajectory = trajectory;
+        }
+
+        auto desired_goal = m_trajectory.points.front();
+        m_trajectory.points.erase(m_trajectory.points.begin());
+
+        // First point is the current state of the robot --> jump to the second point
+        if(desired_goal.time_from_start. < rclcpp::Duration(1e7)) // needs to be reviewed
+        {
+            ExecuteTrajectory(trajectory);
+            return;
+        }
+
+        // ComputeJointVelocity(desired_goal);
+
+        // SetVelocityJoints();
+
+        // If the trajectory is thoroughly executed set the status to Concluded
+        if (m_trajectory.points.size() == 0)
+        {
+            m_actionServerClass.m_goalStatus = GoalStatus::Concluded;
+        }
         
     }
 
