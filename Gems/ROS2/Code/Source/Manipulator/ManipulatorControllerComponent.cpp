@@ -81,6 +81,7 @@ namespace ROS2
 
     void ManipulatorControllerComponent::Reflect(AZ::ReflectContext* context)
     {
+        // VehicleDynamics::PidConfiguration::Reflect(context);
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serialize->Class<ManipulatorControllerComponent, AZ::Component>()
@@ -121,6 +122,7 @@ namespace ROS2
         for (auto& pid : m_pidConfigurationVector)
         {
             pid.InitializePid();
+            // AZ_Printf("ManipulatorControllerComponent", "Initialization n. %d PID", i); // DEBUG
         }
     }
 
@@ -412,10 +414,6 @@ namespace ROS2
         if(!m_initialized)
         {
             InitializeMap();
-            if (m_pidBoolean)
-            {
-                InitializePid();
-            }
             m_initialized = true;
         }
 
