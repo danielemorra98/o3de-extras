@@ -66,7 +66,7 @@ namespace ROS2
     void ManipulatorControllerComponent::Activate()
     {
         AZ::TickBus::Handler::BusConnect();
-
+        InitializePid();        
     }
 
     void ManipulatorControllerComponent::Deactivate()
@@ -76,12 +76,13 @@ namespace ROS2
 
     void ManipulatorControllerComponent::Reflect(AZ::ReflectContext* context)
     {
+        // VehicleDynamics::PidConfiguration::Reflect(context);
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serialize->Class<ManipulatorControllerComponent, AZ::Component>()
                 ->Version(0)
                 ->Field("PID boolean", &ManipulatorControllerComponent::m_pidBoolean)
-                ->Field("PID Configuration", &ManipulatorControllerComponent::m_pid);
+                ->Field("PID Configuration Vector", &ManipulatorControllerComponent::m_pidConfigurationVector);
 
             if (AZ::EditContext* ec = serialize->GetEditContext())
             {
@@ -96,10 +97,10 @@ namespace ROS2
                         "Boolean value for the choice of having a PID instead of a feedforward controller")
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default, 
-                        &ManipulatorControllerComponent::m_pid,
+                        &ManipulatorControllerComponent::m_pidConfigurationVector,
                         "PID Configuration", 
-                        "PID controller configuration valid for all the hinge joints")
-                    ->Attribute(AZ::Edit::Attributes::Visibility, &ManipulatorControllerComponent::m_pidBoolean);
+                        "PID controller configuration valid for all the hinge joints");
+                    // ->Attribute(AZ::Edit::Attributes::Visibility, &ManipulatorControllerComponent::m_pidBoolean);
             }
         }
     }
@@ -113,9 +114,10 @@ namespace ROS2
 
     void ManipulatorControllerComponent::InitializePid()
     {
-        for (auto pid : m_pid)
+        for (auto& pid : m_pidConfigurationVector)
         {
             pid.InitializePid();
+            // AZ_Printf("ManipulatorControllerComponent", "Initialization n. %d PID", i); // DEBUG
         }
     }
 
@@ -151,9 +153,8 @@ namespace ROS2
     {
         // PID method
         double error = desiredPosition - currentPosition;
-        AZ_Printf("ManipulatorControllerComponent", "deltaTimeNs: %d; error PID joint n. %d: %f", deltaTimeNs, joint_index, error);
-        AZ_Printf("ManipulatorControllerComponent", "deltaTimeNs: %d; error PID joint n. %d: %f", deltaTimeNs, joint_index, error);
-        double desired_velocity = m_pid.at(joint_index).ComputeCommand(error, deltaTimeNs);
+        // AZ_Printf("ManipulatorControllerComponent", "deltaTimeNs: %d; error PID joint n. %d: %f", deltaTimeNs, joint_index, error); // DEBUG
+        double desired_velocity = m_pidConfigurationVector.at(joint_index).ComputeCommand(error, deltaTimeNs);
         return desired_velocity;
     }
 
@@ -299,10 +300,6 @@ namespace ROS2
         if(!m_initialized)
         {
             InitializeMap();
-            if (m_pidBoolean)
-            {
-                InitializePid();
-            }
             m_initialized = true;
         }
 

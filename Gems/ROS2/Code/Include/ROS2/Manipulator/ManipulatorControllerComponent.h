@@ -81,7 +81,8 @@ namespace ROS2
         bool m_pidBoolean{false};
         bool m_KeepStillPositionInitialize{false};
         bool m_debugBool{false};
-        AZStd::vector<VehicleDynamics::PidConfiguration> m_pid;
+        VehicleDynamics::PidConfiguration m_pidConfiguration;
+        AZStd::vector<VehicleDynamics::PidConfiguration> m_pidConfigurationVector;
         AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
         AZStd::unordered_map<AZ::Name, float> m_jointKeepStillPosition;
         trajectory_msgs::msg::JointTrajectory m_trajectory;
