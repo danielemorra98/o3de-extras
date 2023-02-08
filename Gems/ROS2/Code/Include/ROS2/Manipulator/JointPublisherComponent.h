@@ -24,7 +24,8 @@ namespace ROS2
         void Deactivate() override;
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
-        // Required Reflect function.
+        static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
+        static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
         static void Reflect(AZ::ReflectContext* context);
 
     private:
