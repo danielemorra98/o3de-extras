@@ -23,6 +23,11 @@ namespace ROS2
     {
     }
 
+    void URDFMetadataComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("URDFMetadata"));
+    }
+
     void URDFMetadataComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))

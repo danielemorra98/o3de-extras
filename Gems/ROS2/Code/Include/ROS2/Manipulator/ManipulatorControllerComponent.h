@@ -60,6 +60,7 @@ namespace ROS2
         ~ManipulatorControllerComponent() = default;
         void Activate() override;
         void Deactivate() override;
+        static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
         static void Reflect(AZ::ReflectContext* context);
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
