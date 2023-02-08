@@ -11,8 +11,8 @@ namespace ROS2
     {
         AZ::TickBus::Handler::BusConnect();
         auto ros2Node = ROS2::ROS2Interface::Get()->GetNode();
-        // const auto fullTopic = ROS2Names::GetNamespacedName(GetNamespace(), "joint_states");
-        m_jointstatePublisher = ros2Node->create_publisher<sensor_msgs::msg::JointState>("joint_states", 1);        // TODO: add QoS instead of "1"
+        AZStd::string jointStatesTopic = "joint_states";
+        m_jointstatePublisher = ros2Node->create_publisher<sensor_msgs::msg::JointState>(jointStatesTopic.data(), rclcpp::QoS(1));        // TODO: add QoS instead of "1"
     }
 
     void JointPublisherComponent::Deactivate()
@@ -55,8 +55,8 @@ namespace ROS2
             
             if (hingeEntity->FindComponent<PhysX::HingeJointComponent>() != nullptr)
             {
-                m_jointstate_msg.name.push_back(name.GetCStr());
-                m_jointstate_msg.position.push_back(nullPosition);
+                m_jointstateMsg.name.push_back(name.GetCStr());
+                m_jointstateMsg.position.push_back(nullPosition);
             }
         }
     }
@@ -68,8 +68,7 @@ namespace ROS2
         {
             if (auto* hingeComponent = AzToolsFramework::GetEntityById(entityId)->FindComponent<PhysX::HingeJointComponent>())
             {
-                /* code */
-                m_jointstate_msg.position[i] = GetJointPosition(hingeComponent);
+                m_jointstateMsg.position[i] = GetJointPosition(hingeComponent);
                 i++;
             }
             
@@ -90,9 +89,9 @@ namespace ROS2
     {
         std_msgs::msg::Header ros_header;
         ros_header.stamp = ROS2::ROS2Interface::Get()->GetROSTimestamp();
-        m_jointstate_msg.header = ros_header;
+        m_jointstateMsg.header = ros_header;
         UpdateMessage();
-        m_jointstatePublisher->publish(m_jointstate_msg);
+        m_jointstatePublisher->publish(m_jointstateMsg);
     }
 
 
