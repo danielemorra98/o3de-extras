@@ -35,6 +35,16 @@ namespace ROS2
         required.push_back(AZ_CRC_CE("URDFMetadata"));
     }
 
+    void JointPublisherComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("JointPublisher"));
+    }
+
+    void JointPublisherComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+        required.push_back(AZ_CRC_CE("URDFMetadata"));
+    }
+
     void JointPublisherComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
