@@ -50,16 +50,10 @@ namespace ROS2
     void FollowJointTrajectoryActionServer::goal_accepted_callback(
             const std::shared_ptr<GoalHandleFollowJointTrajectory> goal_handle)
     {
-        // Dummy implementation
         AZ_Printf("ManipulatorControllerComponent", "FollowJointTrajectory manipulator Goal accepted");
         this->m_goalHandle = goal_handle;
         m_goalStatus = GoalStatus::Active;     
     }
-
-    // std::shared_ptr<GoalHandleFollowJointTrajectory> FollowJointTrajectoryActionServer::GetGoal()
-    // {
-
-    // }
 
 
     // ManipulatorControllerComponent class
@@ -76,7 +70,6 @@ namespace ROS2
 
     void ManipulatorControllerComponent::Reflect(AZ::ReflectContext* context)
     {
-        // VehicleDynamics::PidConfiguration::Reflect(context);
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serialize->Class<ManipulatorControllerComponent, AZ::Component>()
@@ -98,9 +91,8 @@ namespace ROS2
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default, 
                         &ManipulatorControllerComponent::m_pidConfigurationVector,
-                        "PID Configuration", 
-                        "PID controller configuration valid for all the hinge joints");
-                    // ->Attribute(AZ::Edit::Attributes::Visibility, &ManipulatorControllerComponent::m_pidBoolean);
+                        "PIDs Configuration", 
+                        "PID controllers configuration (for all the joints)");
             }
         }
     }
@@ -109,7 +101,6 @@ namespace ROS2
     {
         auto* metadataComponent = GetEntity()->FindComponent<URDFMetadataComponent>();
         m_hierarchyMap = metadataComponent->GetHierarchy();
-        AZ_Printf("ManipulatorControllerComponent", "Map initialized");
     }
 
     void ManipulatorControllerComponent::InitializePid()
@@ -117,17 +108,16 @@ namespace ROS2
         for (auto& pid : m_pidConfigurationVector)
         {
             pid.InitializePid();
-            // AZ_Printf("ManipulatorControllerComponent", "Initialization n. %d PID", i); // DEBUG
         }
     }
 
     void ManipulatorControllerComponent::InitializeCurrentPosition()
     {
-        for (auto [joint_name , joint_entity_id] : m_hierarchyMap)
+        for (auto & [jointName , jointEntityId] : m_hierarchyMap)
         {
-            if (auto* hingeComponent = AzToolsFramework::GetEntityById(joint_entity_id)->FindComponent<PhysX::HingeJointComponent>())
+            if (auto* hingeComponent = AzToolsFramework::GetEntityById(jointEntityId)->FindComponent<PhysX::HingeJointComponent>())
             {
-                m_jointKeepStillPosition[joint_name] = GetJointPosition(hingeComponent);
+                m_jointKeepStillPosition[jointName] = GetJointPosition(hingeComponent);
             }
         }
     }
@@ -142,48 +132,27 @@ namespace ROS2
         return position;
     }
 
-    double ManipulatorControllerComponent::ComputeFFJointVelocity(float & currentPosition, float & desiredPosition, const rclcpp::Duration & duration)
+    float ManipulatorControllerComponent::ComputeFFJointVelocity(float & currentPosition, float & desiredPosition, const rclcpp::Duration & duration)
     {
         // FeedForward (dummy) method
-        double desired_velocity = (desiredPosition - currentPosition) / duration.seconds();
-        return desired_velocity;
+        float desiredVelocity = (desiredPosition - currentPosition) / duration.seconds();
+        return desiredVelocity;
     }
 
-    double ManipulatorControllerComponent::ComputePIDJointVelocity(float & currentPosition, float & desiredPosition, const uint64_t & deltaTimeNs, int & joint_index)
+    float ManipulatorControllerComponent::ComputePIDJointVelocity(float & currentPosition, float & desiredPosition, const uint64_t & deltaTimeNs, int & jointIndex)
     {
         // PID method
-        double error = desiredPosition - currentPosition;
-        // AZ_Printf("ManipulatorControllerComponent", "deltaTimeNs: %d; error PID joint n. %d: %f", deltaTimeNs, joint_index, error); // DEBUG
-        double desired_velocity = m_pidConfigurationVector.at(joint_index).ComputeCommand(error, deltaTimeNs);
-        return desired_velocity;
+        float error = desiredPosition - currentPosition;
+        float command = m_pidConfigurationVector.at(jointIndex).ComputeCommand(error, deltaTimeNs);
+        return command;
     }
 
-    void ManipulatorControllerComponent::SetJointVelocity(AZ::Component * hingeComponent, double & desiredVelocity)
+    void ManipulatorControllerComponent::SetJointVelocity(AZ::Component * hingeComponent, float & desiredVelocity)
     {
         auto componentId = hingeComponent->GetId();
         auto entityId = hingeComponent->GetEntityId();
         const AZ::EntityComponentIdPair id(entityId,componentId);
         PhysX::JointRequestBus::Event(id, &PhysX::JointRequests::SetVelocity, desiredVelocity);
-    }
-
-    void ManipulatorControllerComponent::DebugTrajectoryExecution()
-    {
-        // Dummy-debug implementation
-        if(!m_debugBool)
-        {
-            std::shared_ptr<const FollowJointTrajectory::Goal> goal = m_actionServerClass.m_goalHandle->get_goal();
-            AZ_Printf("ManipulatorControllerComponent", "Executing manipulator goal");
-            AZ_Printf("ManipulatorControllerComponent", "First Trajectory Point: %f, %f, %f, %f, %f, %f, %f",
-                    goal->trajectory.points[0].positions[0],
-                    goal->trajectory.points[0].positions[1],
-                    goal->trajectory.points[0].positions[2],
-                    goal->trajectory.points[0].positions[3],
-                    goal->trajectory.points[0].positions[4],
-                    goal->trajectory.points[0].positions[5],
-                    goal->trajectory.points[0].positions[6]);
-                
-            m_debugBool = true;
-        }
     }
 
     void ManipulatorControllerComponent::KeepStillPosition([[maybe_unused]] const uint64_t & deltaTimeNs)
@@ -194,39 +163,38 @@ namespace ROS2
             m_KeepStillPositionInitialize = true;
         }
         
-        int joint_index = 0;
-        for (auto [joint_name , desired_position] : m_jointKeepStillPosition)
+        int jointIndex = 0;
+        for (auto & [jointName , desiredPosition] : m_jointKeepStillPosition)
         {
-            float current_position;
-            // Get the EntityId related to that joint from the hierarchy map
-            // TODO: check on the existance of the name in the map
-            AZ::EntityId joint_entity_id = m_hierarchyMap[joint_name];
-            if (auto* hingeComponent = AzToolsFramework::GetEntityById(joint_entity_id)->FindComponent<PhysX::HingeJointComponent>())
+            float currentPosition;
+
+            AZ::EntityId jointEntityId = m_hierarchyMap[jointName];
+            if (auto* hingeComponent = AzToolsFramework::GetEntityById(jointEntityId)->FindComponent<PhysX::HingeJointComponent>())
             {
-                current_position = GetJointPosition(hingeComponent);
-                double desired_velocity;
+                currentPosition = GetJointPosition(hingeComponent);
+                float desiredVelocity;
                 if (!m_pidBoolean)
                 {
-                    desired_velocity = ComputeFFJointVelocity(
-                            current_position, 
-                            desired_position, 
+                    desiredVelocity = ComputeFFJointVelocity(
+                            currentPosition, 
+                            desiredPosition, 
                             rclcpp::Duration::from_nanoseconds(5e8)); // Dummy forward time reference 
                 }
                 else
                 {
-                    desired_velocity = ComputePIDJointVelocity(
-                            current_position, 
-                            desired_position, 
+                    desiredVelocity = ComputePIDJointVelocity(
+                            currentPosition, 
+                            desiredPosition, 
                             deltaTimeNs,
-                            joint_index);
+                            jointIndex);
                 }
                 
-                AZ_Printf("ManipulatorControllerComponent", "Desired velocity for joint %d: %f", joint_index, desired_velocity);
+                AZ_Printf("ManipulatorControllerComponent", "Desired velocity for joint %d: %f", jointIndex, desiredVelocity);
                 
-                SetJointVelocity(hingeComponent, desired_velocity);
+                SetJointVelocity(hingeComponent, desiredVelocity);
             }
 
-            joint_index++;
+            jointIndex++;
         }
     }
 
@@ -240,56 +208,51 @@ namespace ROS2
             return;
         }
 
-        auto desired_goal = m_trajectory.points.front();
+        auto desiredGoal = m_trajectory.points.front();
 
-        // TODO: give a brief description
-        rclcpp::Duration time_from_start = rclcpp::Duration(desired_goal.time_from_start);
+        rclcpp::Duration timeFromStart = rclcpp::Duration(desiredGoal.time_from_start); // the arrival time of the current desired trajectory point
         rclcpp::Duration threshold = rclcpp::Duration::from_nanoseconds(1e7);
-        rclcpp::Time time_now = rclcpp::Time(ROS2::ROS2Interface::Get()->GetROSTimestamp());
+        rclcpp::Time timeNow = rclcpp::Time(ROS2::ROS2Interface::Get()->GetROSTimestamp()); // the current simulation time
 
-        // AZ_Printf("ManipulatorControllerComponent", "Desired Arrival time of trajectory point: %f",
-        //             (m_timeStartingExecutionTraj + time_from_start - time_now).seconds()); // DEBUG
-
-        if(m_timeStartingExecutionTraj + time_from_start  <= time_now + threshold) // needs to be reviewed
+        // Jump to the next point if current simulation time is ahead of timeFromStart
+        if(m_timeStartingExecutionTraj + timeFromStart  <= timeNow + threshold)
         {
             m_trajectory.points.erase(m_trajectory.points.begin());
             ExecuteTrajectory(deltaTimeNs);
             return;
         }
 
-        int joint_index = 0;
-        for (auto joint_name : m_trajectory.joint_names)
+        int jointIndex = 0;
+        for (auto & jointName : m_trajectory.joint_names)
         {
-            float current_position;
-            float desired_position = desired_goal.positions[joint_index];
             // Get the EntityId related to that joint from the hierarchy map
             // TODO: check on the existance of the name in the map
-            AZ::EntityId joint_entity_id = m_hierarchyMap[AZ::Name(joint_name.c_str())];
-            if (auto* hingeComponent = AzToolsFramework::GetEntityById(joint_entity_id)->FindComponent<PhysX::HingeJointComponent>())
+            AZ::EntityId jointEntityId = m_hierarchyMap[AZ::Name(jointName.c_str())];
+            if (auto* hingeComponent = AzToolsFramework::GetEntityById(jointEntityId)->FindComponent<PhysX::HingeJointComponent>())
             {
-                current_position = GetJointPosition(hingeComponent);
-                double desired_velocity;
-                if (!m_pidBoolean)
+                float currentPosition = GetJointPosition(hingeComponent);
+                float desiredPosition = desiredGoal.positions[jointIndex];
+                float desiredVelocity;
+                if (m_pidBoolean)
                 {
-                    desired_velocity = ComputeFFJointVelocity(
-                            current_position, 
-                            desired_position, 
-                            m_timeStartingExecutionTraj + time_from_start - time_now);
+                    desiredVelocity = ComputePIDJointVelocity(
+                            currentPosition, 
+                            desiredPosition, 
+                            deltaTimeNs,
+                            jointIndex);
                 }
                 else
                 {
-                    desired_velocity = ComputePIDJointVelocity(
-                            current_position, 
-                            desired_position, 
-                            deltaTimeNs,
-                            joint_index);
+                    desiredVelocity = ComputeFFJointVelocity(
+                            currentPosition, 
+                            desiredPosition, 
+                            m_timeStartingExecutionTraj + timeFromStart - timeNow);
                 }
                 
-                
-                SetJointVelocity(hingeComponent, desired_velocity);
+                SetJointVelocity(hingeComponent, desiredVelocity);
             }
 
-            joint_index++;
+            jointIndex++;
         }
 
         
@@ -305,11 +268,8 @@ namespace ROS2
 
         const uint64_t deltaTimeNs = deltaTime * 1'000'000'000;
 
-        // Goal Execution
-        if (m_actionServerClass.m_goalStatus == GoalStatus::Active)
+        if (m_actionServerClass.m_goalStatus == GoalStatus::Active) // Execute the trajectory
         {
-            // DebugTrajectoryExecution()
-            // AZ_Printf("ManipulatorControllerComponent", "Executing Trajectory"); // DEBUG
             if (!m_initializedTrajectory)
             {
                 m_trajectory = m_actionServerClass.m_goalHandle->get_goal()->trajectory;
@@ -327,7 +287,7 @@ namespace ROS2
                 m_KeepStillPositionInitialize = false;
             }
         }
-        else
+        else // Remain in the same position
         {
             KeepStillPosition(deltaTimeNs);
         }
