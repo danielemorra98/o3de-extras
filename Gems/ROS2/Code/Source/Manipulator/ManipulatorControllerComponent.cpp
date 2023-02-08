@@ -68,6 +68,13 @@ namespace ROS2
         AZ::TickBus::Handler::BusDisconnect();
     }
 
+
+    void ManipulatorControllerComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+        required.push_back(AZ_CRC_CE("JointPublisher"));
+        required.push_back(AZ_CRC_CE("URDFMetadata"));
+    }
+
     void ManipulatorControllerComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
