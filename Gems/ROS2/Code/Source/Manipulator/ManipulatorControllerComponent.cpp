@@ -333,9 +333,7 @@ namespace ROS2
                             deltaTimeNs,
                             jointIndex);
                 }
-                
-                AZ_Printf("ManipulatorControllerComponent", "Desired velocity for joint %d: %f", jointIndex, desiredVelocity);
-                
+                                
                 SetJointVelocity(hingeComponent, desiredVelocity);
             }
 
