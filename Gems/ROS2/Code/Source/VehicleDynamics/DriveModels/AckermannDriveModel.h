@@ -46,6 +46,6 @@ namespace ROS2::VehicleDynamics
         PidConfiguration m_steeringPid;
         PidConfiguration m_speedPid;
         bool m_disabled{ false };
-        float m_steeringDeadZone = 0.01;
+        // float m_steeringDeadZone = 0.01;
     };
 } // namespace ROS2::VehicleDynamics
