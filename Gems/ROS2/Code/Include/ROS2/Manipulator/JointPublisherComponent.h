@@ -36,7 +36,7 @@ namespace ROS2
         void InitializeJointStateMessage();
 
         std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::JointState>> m_jointstatePublisher;
-        sensor_msgs::msg::JointState m_jointstate_msg;
+        sensor_msgs::msg::JointState m_jointstateMsg;
         bool m_initialized{false};
     };
 } // namespace ROS2
