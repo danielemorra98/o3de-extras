@@ -80,7 +80,7 @@ namespace ROS2
         {
             serialize->Class<ManipulatorControllerComponent, AZ::Component>()
                 ->Version(0)
-                ->Field("PID boolean", &ManipulatorControllerComponent::m_pidBoolean)
+                ->Field("Controller type", &ManipulatorControllerComponent::m_controllerType)
                 ->Field("PID Configuration Vector", &ManipulatorControllerComponent::m_pidConfigurationVector);
 
             if (AZ::EditContext* ec = serialize->GetEditContext())
@@ -90,10 +90,12 @@ namespace ROS2
                     ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game"))
                     ->Attribute(AZ::Edit::Attributes::Category, "ROS2")
                     ->DataElement(
-                        AZ::Edit::UIHandlers::Default, 
-                        &ManipulatorControllerComponent::m_pidBoolean,
-                        "Using PID", 
-                        "Boolean value for the choice of having a PID instead of a feedforward controller")
+                        AZ::Edit::UIHandlers::ComboBox,
+                        &ManipulatorControllerComponent::m_controllerType,
+                        "Controller type", 
+                        "Different controller types to command the joints of the manipulator")
+                    ->EnumAttribute(ManipulatorControllerComponent::Controller::FeedForward, "FeedForward")
+                    ->EnumAttribute(ManipulatorControllerComponent::Controller::PID, "PID")
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default, 
                         &ManipulatorControllerComponent::m_pidConfigurationVector,
@@ -185,14 +187,14 @@ namespace ROS2
             {
                 currentPosition = GetJointPosition(hingeComponent);
                 float desiredVelocity;
-                if (!m_pidBoolean)
+                if (m_controllerType == Controller::FeedForward)
                 {
                     desiredVelocity = ComputeFFJointVelocity(
                             currentPosition, 
                             desiredPosition, 
                             rclcpp::Duration::from_nanoseconds(5e8)); // Dummy forward time reference 
                 }
-                else
+                else if(m_controllerType == Controller::PID)
                 {
                     desiredVelocity = ComputePIDJointVelocity(
                             currentPosition, 
@@ -246,20 +248,20 @@ namespace ROS2
                 float currentPosition = GetJointPosition(hingeComponent);
                 float desiredPosition = desiredGoal.positions[jointIndex];
                 float desiredVelocity;
-                if (m_pidBoolean)
+                if (m_controllerType == Controller::FeedForward)
+                {
+                    desiredVelocity = ComputeFFJointVelocity(
+                            currentPosition, 
+                            desiredPosition, 
+                            m_timeStartingExecutionTraj + timeFromStart - timeNow);
+                }
+                else if (m_controllerType == Controller::PID)
                 {
                     desiredVelocity = ComputePIDJointVelocity(
                             currentPosition, 
                             desiredPosition, 
                             deltaTimeNs,
                             jointIndex);
-                }
-                else
-                {
-                    desiredVelocity = ComputeFFJointVelocity(
-                            currentPosition, 
-                            desiredPosition, 
-                            m_timeStartingExecutionTraj + timeFromStart - timeNow);
                 }
                 
                 SetJointVelocity(hingeComponent, desiredVelocity);
