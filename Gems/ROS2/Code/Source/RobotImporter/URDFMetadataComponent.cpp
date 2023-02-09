@@ -6,7 +6,7 @@
  *
  */
 
-#include "URDFMetadataComponent.h"
+#include <URDFMetadataComponent.h>
 #include <AzCore/Debug/Trace.h>
 #include <AzCore/std/containers/unordered_map.h>
 #include <AzCore/Serialization/SerializeContext.h>
