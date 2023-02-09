@@ -3,7 +3,7 @@
 #include "ROS2/ROS2Bus.h"
 #include <PhysX/Joint/PhysXJointRequestsBus.h>
 #include <Source/HingeJointComponent.h>
-#include <AzToolsFramework/Entity/EditorEntityHelpers.h>
+#include <AzCore/Component/ComponentApplicationBus.h>
 
 namespace ROS2
 {
@@ -18,6 +18,7 @@ namespace ROS2
     void JointPublisherComponent::Deactivate()
     {
         AZ::TickBus::Handler::BusDisconnect();
+        m_jointstatePublisher.reset();
     }
 
     void JointPublisherComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
@@ -51,13 +52,12 @@ namespace ROS2
     {
         auto* metadataComponent = GetEntity()->FindComponent<URDFMetadataComponent>();
         m_hierarchyMap = metadataComponent->GetHierarchy();
-        AZ_Printf("JointPublisherComponent", "Map initialized");
+        AZ_TracePrintf("JointPublisherComponent", "Map initialized");
     }
 
     void JointPublisherComponent::InitializeJointStateMessage()
     {
         InitializeMap();
-        double nullPosition{0};
         for ([[maybe_unused]] auto& [name, entityId] : m_hierarchyMap)
         {
             AZ::Entity* hingeEntity = nullptr;
@@ -88,9 +88,9 @@ namespace ROS2
         }
     }
 
-    double JointPublisherComponent::GetJointPosition(const AZ::Component* hingeComponent) const
+    float JointPublisherComponent::GetJointPosition(const AZ::Component* hingeComponent) const
     {
-        double position{0};
+        float position{0};
         auto componentId = hingeComponent->GetId();
         auto entityId = hingeComponent->GetEntityId();
         const AZ::EntityComponentIdPair id(entityId,componentId);

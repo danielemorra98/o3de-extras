@@ -33,7 +33,7 @@ namespace ROS2
         void UpdateMessage();
         void InitializeMap();
 
-        double GetJointPosition(const AZ::Component* hingeComponent) const;
+        float GetJointPosition(const AZ::Component* hingeComponent) const;
         void InitializeJointStateMessage();
 
         std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::JointState>> m_jointstatePublisher;
