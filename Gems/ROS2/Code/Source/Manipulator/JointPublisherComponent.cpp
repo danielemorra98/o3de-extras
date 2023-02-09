@@ -4,6 +4,8 @@
 #include <PhysX/Joint/PhysXJointRequestsBus.h>
 #include <Source/HingeJointComponent.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
+#include <ROS2/Frame/ROS2FrameComponent.h>
+#include <ROS2/Utilities/ROS2Names.h>
 
 namespace ROS2
 {
@@ -11,8 +13,9 @@ namespace ROS2
     {
         AZ::TickBus::Handler::BusConnect();
         auto ros2Node = ROS2::ROS2Interface::Get()->GetNode();
-        AZStd::string jointStatesTopic = "joint_states";
-        m_jointstatePublisher = ros2Node->create_publisher<sensor_msgs::msg::JointState>(jointStatesTopic.data(), rclcpp::QoS(1));        // TODO: add QoS instead of "1"
+        auto ros2Frame = GetEntity()->FindComponent<ROS2FrameComponent>();
+        AZStd::string namespacedTopic = ROS2Names::GetNamespacedName(ros2Frame->GetNamespace(), "joint_states");
+        m_jointstatePublisher = ros2Node->create_publisher<sensor_msgs::msg::JointState>(namespacedTopic.data(), rclcpp::QoS(1));        // TODO: add QoS instead of "1"
     }
 
     void JointPublisherComponent::Deactivate()
@@ -82,9 +85,8 @@ namespace ROS2
             if (auto* hingeComponent = hingeEntity->FindComponent<PhysX::HingeJointComponent>())
             {
                 m_jointstateMsg.position[i] = GetJointPosition(hingeComponent);
-                i++;
             }
-            
+            i++;
         }
     }
 

@@ -3,9 +3,7 @@
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/Name/Name.h>
-#include <AzToolsFramework/Entity/EditorEntityHelpers.h>
 #include <ROS2/VehicleDynamics/DriveModels/PidConfiguration.h>
-
 #include <control_msgs/action/follow_joint_trajectory.hpp>
 #include <rclcpp_action/server.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
