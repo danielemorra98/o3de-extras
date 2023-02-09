@@ -22,8 +22,6 @@ set(FILES
     Source/RobotImporter/Pages/XacroParamsPage.h
     Source/RobotImporter/RobotImporterWidget.cpp
     Source/RobotImporter/RobotImporterWidget.h
-    Source/RobotImporter/URDFMetadataComponent.cpp
-    Source/RobotImporter/URDFMetadataComponent.h
     Source/RobotImporter/ROS2RobotImporterEditorSystemComponent.cpp
     Source/RobotImporter/ROS2RobotImporterEditorSystemComponent.h
     Source/RobotImporter/URDFMetadataComponent.cpp
