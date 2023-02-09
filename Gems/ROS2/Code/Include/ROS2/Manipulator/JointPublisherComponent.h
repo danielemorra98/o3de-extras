@@ -10,6 +10,7 @@ namespace ROS2
 {
     //! A component responsible for publishing the 
     //! joint positions on ROS2 /joint_states topic
+    //!< @see <a href="http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/JointState.html">jointState message</a>.
     class JointPublisherComponent
         : public URDFMetadataComponent
         , public AZ::TickBus::Handler
