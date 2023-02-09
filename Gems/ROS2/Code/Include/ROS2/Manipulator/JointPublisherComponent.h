@@ -1,7 +1,6 @@
 #pragma once
 
-#include <ROS2/Manipulator/MotorizedJointComponent.h>
-#include <RobotImporter/URDFMetadataComponent.h>
+#include <AzCore/Component/Component.h>
 #include <rclcpp/publisher.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <AzCore/Component/TickBus.h>
@@ -12,7 +11,7 @@ namespace ROS2
     //! joint positions on ROS2 /joint_states topic
     //!< @see <a href="http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/JointState.html">jointState message</a>.
     class JointPublisherComponent
-        : public URDFMetadataComponent
+        : public AZ::Component
         , public AZ::TickBus::Handler
     {
     public:
@@ -38,6 +37,7 @@ namespace ROS2
         void InitializeJointStateMessage();
 
         std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::JointState>> m_jointstatePublisher;
+        AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
         sensor_msgs::msg::JointState m_jointstateMsg;
         bool m_initialized{false};
     };
