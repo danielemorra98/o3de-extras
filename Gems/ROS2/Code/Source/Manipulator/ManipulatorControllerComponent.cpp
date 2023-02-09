@@ -325,7 +325,7 @@ namespace ROS2
                             desiredPosition, 
                             rclcpp::Duration::from_nanoseconds(5e8)); // Dummy forward time reference 
                 }
-                else
+                else if(m_controllerType == Controller::PID)
                 {
                     desiredVelocity = ComputePIDJointVelocity(
                             currentPosition, 
@@ -379,20 +379,20 @@ namespace ROS2
                 float currentPosition = GetJointPosition(hingeComponent);
                 float desiredPosition = desiredGoal.positions[jointIndex];
                 float desiredVelocity;
-                if (m_pidBoolean)
+                if (m_controllerType == Controller::FeedForward)
+                {
+                    desiredVelocity = ComputeFFJointVelocity(
+                            currentPosition, 
+                            desiredPosition, 
+                            m_timeStartingExecutionTraj + timeFromStart - timeNow);
+                }
+                else if (m_controllerType == Controller::PID)
                 {
                     desiredVelocity = ComputePIDJointVelocity(
                             currentPosition, 
                             desiredPosition, 
                             deltaTimeNs,
                             jointIndex);
-                }
-                else
-                {
-                    desiredVelocity = ComputeFFJointVelocity(
-                            currentPosition, 
-                            desiredPosition, 
-                            m_timeStartingExecutionTraj + timeFromStart - timeNow);
                 }
                 
                 SetJointVelocity(hingeComponent, desiredVelocity);
