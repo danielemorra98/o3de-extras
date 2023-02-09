@@ -15,7 +15,6 @@
 #include <ROS2/ROS2Bus.h>
 #include <ROS2/ROS2GemUtilities.h>
 #include <ROS2/Utilities/ROS2Names.h>
-
 namespace ROS2
 {
     namespace Internal
@@ -146,6 +145,7 @@ namespace ROS2
     {
         return m_isDynamic;
     }
+
     const ROS2FrameComponent* ROS2FrameComponent::GetParentROS2FrameComponent() const
     {
         return Internal::GetFirstROS2FrameAncestor(GetEntity());
