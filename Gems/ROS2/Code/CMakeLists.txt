@@ -41,7 +41,6 @@ ly_add_target(
             Gem::Atom_Component_DebugCamera.Static
             Gem::StartingPointInput
             Gem::PhysX.Static
-            Gem::PhysX.Editor.Static
 )
 
 target_depends_on_ros2_packages(${gem_name}.Static rclcpp rclcpp_action builtin_interfaces std_msgs sensor_msgs nav_msgs control_msgs urdfdom tf2_ros ackermann_msgs gazebo_msgs control_toolbox)
