@@ -48,6 +48,11 @@ namespace ROS2
         , public AZ::TickBus::Handler
     {
     public:
+        enum class Controller
+        {
+            FeedForward, //!< @see <a href="https://en.wikipedia.org/wiki/Feed_forward_(control)">FeedForward</a>.
+            PID          //!< @see <a href="https://en.wikipedia.org/wiki/PID_controller">PID</a>.
+        };
 
         AZ_COMPONENT(ManipulatorControllerComponent, "{3da9abfc-0028-4e3e-8d04-4e4440d2e319}", AZ::Component); // , ManipulatorRequestBus::Handler);
 
@@ -74,7 +79,7 @@ namespace ROS2
         FollowJointTrajectoryActionServer m_actionServerClass;
         bool m_initialized{false};
         bool m_initializedTrajectory{false};
-        bool m_pidBoolean{false};
+        Controller m_controllerType = Controller::FeedForward;
         bool m_KeepStillPositionInitialize{false};
         AZStd::vector<VehicleDynamics::PidConfiguration> m_pidConfigurationVector;
         AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
