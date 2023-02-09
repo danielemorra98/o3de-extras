@@ -60,13 +60,13 @@ namespace ROS2
         double nullPosition{0};
         for ([[maybe_unused]] auto& [name, entityId] : m_hierarchyMap)
         {
-            AZ::Entity* hingeEntity = AzToolsFramework::GetEntityById(entityId);
+            AZ::Entity* hingeEntity = nullptr;
+            AZ::ComponentApplicationBus::BroadcastResult(hingeEntity, &AZ::ComponentApplicationRequests::FindEntity, entityId);
             AZ_Assert(hingeEntity, "Unknown entity %s", entityId.ToString().c_str());
-            
             if (hingeEntity->FindComponent<PhysX::HingeJointComponent>() != nullptr)
             {
                 m_jointstateMsg.name.push_back(name.GetCStr());
-                m_jointstateMsg.position.push_back(nullPosition);
+                m_jointstateMsg.position.push_back(0.0f);
             }
         }
     }
@@ -76,7 +76,10 @@ namespace ROS2
         int i = 0;
         for ([[maybe_unused]] auto& [name, entityId] : m_hierarchyMap)
         {
-            if (auto* hingeComponent = AzToolsFramework::GetEntityById(entityId)->FindComponent<PhysX::HingeJointComponent>())
+            AZ::Entity* hingeEntity = nullptr;
+            AZ::ComponentApplicationBus::BroadcastResult(hingeEntity, &AZ::ComponentApplicationRequests::FindEntity, entityId);
+            AZ_Assert(hingeEntity, "Unknown entity %s", entityId.ToString().c_str());
+            if (auto* hingeComponent = hingeEntity->FindComponent<PhysX::HingeJointComponent>())
             {
                 m_jointstateMsg.position[i] = GetJointPosition(hingeComponent);
                 i++;
