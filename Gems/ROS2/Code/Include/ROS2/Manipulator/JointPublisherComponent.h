@@ -3,8 +3,6 @@
 #include <AzCore/Component/Component.h>
 #include <rclcpp/publisher.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
-#include <sensor_msgs/msg/joint_state.hpp>
-#include <control_msgs/action/follow_joint_trajectory.h>
 #include <AzCore/Component/TickBus.h>
 
 namespace ROS2
