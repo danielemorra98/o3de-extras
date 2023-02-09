@@ -5,6 +5,7 @@
 #include <Source/HingeJointComponent.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
 #include <ROS2/Frame/ROS2FrameComponent.h>
+#include <RobotImporter/URDFMetadataComponent.h>
 #include <ROS2/Utilities/ROS2Names.h>
 
 namespace ROS2
@@ -53,9 +54,11 @@ namespace ROS2
 
     void JointPublisherComponent::InitializeMap()
     {
-        auto* metadataComponent = GetEntity()->FindComponent<URDFMetadataComponent>();
-        m_hierarchyMap = metadataComponent->GetHierarchy();
-        AZ_TracePrintf("JointPublisherComponent", "Map initialized");
+        if (auto* metadataComponent = GetEntity()->FindComponent<URDFMetadataComponent>())
+        {
+            m_hierarchyMap = metadataComponent->GetHierarchy();
+            AZ_TracePrintf("JointPublisherComponent", "Map initialized");
+        }
     }
 
     void JointPublisherComponent::InitializeJointStateMessage()
