@@ -21,15 +21,16 @@ namespace ROS2
         AZ_COMPONENT(URDFMetadataComponent, "{5d8a6d7d-6847-4e00-9305-b8b848d8b282}", AZ::Component);
         URDFMetadataComponent() = default;
 
-        // Component override
+        // AZ::Component override
         void Activate() override;
         void Deactivate() override;
+        // AZ::Component interface implementation
+        static void Reflect(AZ::ReflectContext* context);
+        static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
 
         void SetHierarchy(const AZStd::unordered_map<AZ::Name, AZ::EntityId> & hierarchyMap);
         AZStd::unordered_map<AZ::Name, AZ::EntityId> GetHierarchy();
 
-        static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
-        static void Reflect(AZ::ReflectContext* context);
 
         AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
     private:

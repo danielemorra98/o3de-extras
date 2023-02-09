@@ -4,14 +4,12 @@
 #include <RobotImporter/URDFMetadataComponent.h>
 #include <rclcpp/publisher.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
-#include <sensor_msgs/msg/joint_state.hpp>
-#include <control_msgs/action/follow_joint_trajectory.h>
 #include <AzCore/Component/TickBus.h>
 
 namespace ROS2
 {
-    //! A component responsible for storing the jointComponent tree structure
-    //! and each of the joint's name as they are described in URDF
+    //! A component responsible for publishing the 
+    //! joint positions on ROS2 /joint_states topic
     class JointPublisherComponent
         : public URDFMetadataComponent
         , public AZ::TickBus::Handler
@@ -20,10 +18,12 @@ namespace ROS2
         AZ_COMPONENT(JointPublisherComponent, "{a679c2e4-a602-46de-8db4-4b33d83317f4}", AZ::Component);
         JointPublisherComponent() = default;
 
+        // AZ::Component overrides
         void Activate() override;
         void Deactivate() override;
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
+        // AZ::Component interface implementation
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
         static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
         static void Reflect(AZ::ReflectContext* context);
