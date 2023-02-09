@@ -14,8 +14,6 @@
 #include <ROS2/ROS2Bus.h>
 #include <ROS2/ROS2GemUtilities.h>
 #include <ROS2/Utilities/ROS2Names.h>
-#include <Source/EditorFixedJointComponent.h>
-
 namespace ROS2
 {
     namespace Internal
@@ -116,16 +114,9 @@ namespace ROS2
 
     bool ROS2FrameComponent::IsDynamic() const
     {
-        if(GetEntity()->FindComponent<PhysX::EditorFixedJointComponent>())
-        {
-            return false;
-        }
-        else // for every other joints (Hinge, Prismatic, D6...)
-        {
-            return true;
-        }
-        // return IsTopLevel();
+        return IsTopLevel();
     }
+
     const ROS2FrameComponent* ROS2FrameComponent::GetParentROS2FrameComponent() const
     {
         return Internal::GetFirstROS2FrameAncestor(GetEntity());
