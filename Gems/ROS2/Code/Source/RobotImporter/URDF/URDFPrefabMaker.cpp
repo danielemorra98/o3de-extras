@@ -282,6 +282,7 @@ namespace ROS2
         if (componentId)
         {
             AZ::Entity* rootEntity = AzToolsFramework::GetEntityById(rootEntityId);
+            AZ_Assert(rootEntity, "Unknown entity %s", rootEntityId.ToString().c_str());
             auto* component = Utils::GetGameOrEditorComponent<URDFMetadataComponent>(rootEntity);
             component->SetHierarchy(hierarchyMap);
         }

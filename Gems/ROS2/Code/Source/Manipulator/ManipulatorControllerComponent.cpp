@@ -122,7 +122,10 @@ namespace ROS2
     {
         for (auto & [jointName , jointEntityId] : m_hierarchyMap)
         {
-            if (auto* hingeComponent = AzToolsFramework::GetEntityById(jointEntityId)->FindComponent<PhysX::HingeJointComponent>())
+            AZ::Entity* jointEntity = nullptr;
+            AZ::ComponentApplicationBus::BroadcastResult(jointEntity, &AZ::ComponentApplicationRequests::FindEntity, jointEntityId);
+            AZ_Assert(jointEntity, "Unknown entity %s", jointEntityId.ToString().c_str());
+            if (auto* hingeComponent = jointEntity->FindComponent<PhysX::HingeJointComponent>())
             {
                 m_jointKeepStillPosition[jointName] = GetJointPosition(hingeComponent);
             }
@@ -176,7 +179,10 @@ namespace ROS2
             float currentPosition;
 
             AZ::EntityId jointEntityId = m_hierarchyMap[jointName];
-            if (auto* hingeComponent = AzToolsFramework::GetEntityById(jointEntityId)->FindComponent<PhysX::HingeJointComponent>())
+            AZ::Entity* jointEntity = nullptr;
+            AZ::ComponentApplicationBus::BroadcastResult(jointEntity, &AZ::ComponentApplicationRequests::FindEntity, jointEntityId);
+            AZ_Assert(jointEntity, "Unknown entity %s", jointEntityId.ToString().c_str());
+            if (auto* hingeComponent = jointEntity->FindComponent<PhysX::HingeJointComponent>())
             {
                 currentPosition = GetJointPosition(hingeComponent);
                 float desiredVelocity;
@@ -233,7 +239,10 @@ namespace ROS2
             // Get the EntityId related to that joint from the hierarchy map
             // TODO: check on the existance of the name in the map
             AZ::EntityId jointEntityId = m_hierarchyMap[AZ::Name(jointName.c_str())];
-            if (auto* hingeComponent = AzToolsFramework::GetEntityById(jointEntityId)->FindComponent<PhysX::HingeJointComponent>())
+            AZ::Entity* jointEntity = nullptr;
+            AZ::ComponentApplicationBus::BroadcastResult(jointEntity, &AZ::ComponentApplicationRequests::FindEntity, jointEntityId);
+            AZ_Assert(jointEntity, "Unknown entity %s", jointEntityId.ToString().c_str());
+            if (auto* hingeComponent = jointEntity->FindComponent<PhysX::HingeJointComponent>())
             {
                 float currentPosition = GetJointPosition(hingeComponent);
                 float desiredPosition = desiredGoal.positions[jointIndex];
