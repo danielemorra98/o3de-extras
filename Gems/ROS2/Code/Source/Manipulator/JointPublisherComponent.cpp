@@ -1,6 +1,6 @@
 #include <ROS2/Manipulator/JointPublisherComponent.h>
 #include <AzCore/Serialization/EditContext.h>
-#include "ROS2/ROS2Bus.h"
+#include <ROS2/ROS2Bus.h>
 #include <PhysX/Joint/PhysXJointRequestsBus.h>
 #include <Source/HingeJointComponent.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
