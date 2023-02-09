@@ -1,6 +1,6 @@
 #include <ROS2/Manipulator/ManipulatorControllerComponent.h>
 #include <RobotImporter/URDFMetadataComponent.h>
-#include "ROS2/ROS2Bus.h"
+#include <ROS2/ROS2Bus.h>
 #include <AzCore/Serialization/EditContext.h>
 #include <PhysX/Joint/PhysXJointRequestsBus.h>
 #include <Source/HingeJointComponent.h>
