@@ -50,6 +50,15 @@ namespace ROS2
         //! Set a above-mentioned frame id
         void SetFrameID(const AZStd::string& frameId);
 
+        //////////////////////////////////////////////////////////////////////////
+        // Joint scenario
+        //! Get the joint name, which is needed for ROS2 joint state publisher
+        //! @return The joint name, ready to send in a ROS2 message
+        AZ::Name GetJointName() const;
+
+        //! Set the above-mentioned joint name
+        void SetJointName(const AZStd::string& jointNameString);
+
         //! Get a namespace, which should be used for any publisher or subscriber in the same entity.
         //! @return A complete namespace (including parent namespaces)
         AZStd::string GetNamespace() const;
@@ -84,6 +93,8 @@ namespace ROS2
 
         NamespaceConfiguration m_namespaceConfiguration;
         AZStd::string m_frameName = "sensor_frame";
+        AZStd::string m_jointNameString;
+        AZ::Name m_jointName;
 
         bool m_publishTransform = true;
         bool m_isDynamic = false;
