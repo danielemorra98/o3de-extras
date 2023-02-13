@@ -40,5 +40,9 @@ namespace ROS2
         AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
         sensor_msgs::msg::JointState m_jointstateMsg;
         bool m_initialized{false};
+        float m_timeElapsedSinceLastTick = 0.0f;
+
+        //! Frequency in Hz (1/s).
+        float m_frequency = 10;
     };
 } // namespace ROS2

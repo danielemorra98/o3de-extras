@@ -40,14 +40,17 @@ namespace ROS2
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serialize->Class<JointPublisherComponent, AZ::Component>()
-                ->Version(0);
+                ->Version(0)
+                ->Field("Frequency (HZ)", &JointPublisherComponent::m_frequency);
 
             if (AZ::EditContext* ec = serialize->GetEditContext())
             {
                 ec->Class<JointPublisherComponent>("JointPublisherComponent", "[Publish all the Hinge joint in the tree]")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game"))
-                    ->Attribute(AZ::Edit::Attributes::Category, "ROS2");
+                    ->Attribute(AZ::Edit::Attributes::Category, "ROS2")
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default, &JointPublisherComponent::m_frequency, "Frequency", "Frequency of publishing [Hz]");
             }
         }
     }
@@ -122,6 +125,19 @@ namespace ROS2
             m_initialized = true;
         }
 
+        auto frameTime = m_frequency == 0 ? 1 : 1 / m_frequency;
+
+        m_timeElapsedSinceLastTick += deltaTime;
+        if (m_timeElapsedSinceLastTick < frameTime)
+            return;
+
+        m_timeElapsedSinceLastTick -= frameTime;
+        if (deltaTime > frameTime)
+        { // Frequency higher than possible, not catching up, just keep going with each frame.
+            m_timeElapsedSinceLastTick = 0.0f;
+        }
+
+        // Note that the publisher frequency can be limited by simulation tick rate (if higher frequency is desired).
         PublishMessage();
     }
 } // namespace ROS2
