@@ -35,16 +35,6 @@ namespace ROS2
         required.push_back(AZ_CRC_CE("URDFMetadata"));
     }
 
-    void JointPublisherComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
-    {
-        provided.push_back(AZ_CRC_CE("JointPublisher"));
-    }
-
-    void JointPublisherComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
-    {
-        required.push_back(AZ_CRC_CE("URDFMetadata"));
-    }
-
     void JointPublisherComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
@@ -67,6 +57,7 @@ namespace ROS2
         if (auto* metadataComponent = GetEntity()->FindComponent<URDFMetadataComponent>())
         {
             m_hierarchyMap = metadataComponent->GetHierarchy();
+            AZ_Assert(m_hierarchyMap.size() > 0, "Hierarchy Map not initialized");
             AZ_TracePrintf("JointPublisherComponent", "Map initialized");
         }
     }
@@ -79,7 +70,7 @@ namespace ROS2
             AZ::Entity* hingeEntity = nullptr;
             AZ::ComponentApplicationBus::BroadcastResult(hingeEntity, &AZ::ComponentApplicationRequests::FindEntity, entityId);
             AZ_Assert(hingeEntity, "Unknown entity %s", entityId.ToString().c_str());
-            if (hingeEntity->FindComponent<PhysX::HingeJointComponent>() != nullptr)
+            if (hingeEntity && hingeEntity->FindComponent<PhysX::HingeJointComponent>() != nullptr)
             {
                 m_jointstateMsg.name.push_back(name.GetCStr());
                 m_jointstateMsg.position.push_back(0.0f);

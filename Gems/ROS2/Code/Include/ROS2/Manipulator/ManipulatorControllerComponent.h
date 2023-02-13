@@ -72,18 +72,18 @@ namespace ROS2
         void InitializeMap();
         void InitializePid();
         void InitializeCurrentPosition();
-        void KeepStillPosition(const uint64_t & deltaTimeNs);
-        void ExecuteTrajectory(const uint64_t & deltaTimeNs);
+        void KeepStillPosition(const uint64_t deltaTimeNs);
+        void ExecuteTrajectory(const uint64_t deltaTimeNs);
         float GetJointPosition(const AZ::Component* hingeComponent);
-        float ComputeFFJointVelocity(float &currentPosition, float &desiredPosition, const rclcpp::Duration & duration);
-        float ComputePIDJointVelocity(float & currentPosition, float & desiredPosition, const uint64_t & deltaTimeNs, int & jointIndex);
-        void SetJointVelocity(AZ::Component * hingeComponent, float & desiredVelocity);
+        float ComputeFFJointVelocity(const float currentPosition, const float desiredPosition, const rclcpp::Duration & duration) const;
+        float ComputePIDJointVelocity(const float currentPosition, const float desiredPosition, const uint64_t & deltaTimeNs, int & jointIndex);
+        void SetJointVelocity(AZ::Component * hingeComponent, const float desiredVelocity);
 
         FollowJointTrajectoryActionServer m_actionServerClass;
         bool m_initialized{false};
         bool m_initializedTrajectory{false};
         Controller m_controllerType = Controller::FeedForward;
-        bool m_KeepStillPositionInitialize{false};
+        bool m_keepStillPositionInitialize{false};
         AZStd::vector<VehicleDynamics::PidConfiguration> m_pidConfigurationVector;
         AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
         AZStd::unordered_map<AZ::Name, float> m_jointKeepStillPosition;
