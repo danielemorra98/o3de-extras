@@ -11,6 +11,7 @@
 #include <AzFramework/Physics/Shape.h>
 #include <Lidar/LidarRaycaster.h>
 #include <Lidar/LidarTemplateUtils.h>
+#include <AzCore/std/smart_ptr/make_shared.h>
 
 namespace ROS2
 {
