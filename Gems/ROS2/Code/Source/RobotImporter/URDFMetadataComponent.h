@@ -21,10 +21,11 @@ namespace ROS2
         AZ_COMPONENT(URDFMetadataComponent, "{5d8a6d7d-6847-4e00-9305-b8b848d8b282}", AZ::Component);
         URDFMetadataComponent() = default;
 
-        // AZ::Component override
+        //////////////////////////////////////////////////////////////////////////
+        // Component override
         void Activate() override;
         void Deactivate() override;
-        // AZ::Component interface implementation
+        //////////////////////////////////////////////////////////////////////////
         static void Reflect(AZ::ReflectContext* context);
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
 

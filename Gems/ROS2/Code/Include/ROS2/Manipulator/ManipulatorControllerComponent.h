@@ -56,11 +56,14 @@ namespace ROS2
 
         AZ_COMPONENT(ManipulatorControllerComponent, "{3da9abfc-0028-4e3e-8d04-4e4440d2e319}", AZ::Component); // , ManipulatorRequestBus::Handler);
 
-        // AZ::Component interface implementation
         ManipulatorControllerComponent() = default;
         ~ManipulatorControllerComponent() = default;
+
+        //////////////////////////////////////////////////////////////////////////
+        // Component overrides
         void Activate() override;
         void Deactivate() override;
+        //////////////////////////////////////////////////////////////////////////
         static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
         static void Reflect(AZ::ReflectContext* context);
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;

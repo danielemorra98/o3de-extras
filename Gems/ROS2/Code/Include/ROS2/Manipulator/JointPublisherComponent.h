@@ -18,12 +18,12 @@ namespace ROS2
         AZ_COMPONENT(JointPublisherComponent, "{a679c2e4-a602-46de-8db4-4b33d83317f4}", AZ::Component);
         JointPublisherComponent() = default;
 
-        // AZ::Component overrides
+        //////////////////////////////////////////////////////////////////////////
+        // Component overrides
         void Activate() override;
         void Deactivate() override;
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
-
-        // AZ::Component interface implementation
+        //////////////////////////////////////////////////////////////////////////
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
         static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
         static void Reflect(AZ::ReflectContext* context);
