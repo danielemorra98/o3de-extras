@@ -9,10 +9,6 @@
 #include <ROS2/Frame/ROS2FrameComponent.h>
 #include <ROS2/ROS2Bus.h>
 
-
-// #include ROS_things
-
-
 namespace ROS2
 {
     // ROS2 Action Server class
