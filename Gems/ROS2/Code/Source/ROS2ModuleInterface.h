@@ -28,7 +28,6 @@
 #include <RobotControl/Controllers/SkidSteeringController/SkidSteeringControlComponent.h>
 #include <RobotControl/ROS2RobotControlComponent.h>
 #include <RobotImporter/ROS2RobotImporterSystemComponent.h>
-#include <RobotImporter/URDFMetadataComponent.h>
 #include <Spawner/ROS2SpawnPointComponent.h>
 #include <Spawner/ROS2SpawnerComponent.h>
 #include <VehicleDynamics/ModelComponents/AckermannModelComponent.h>
@@ -74,7 +73,6 @@ namespace ROS2
                   VehicleDynamics::WheelControllerComponent::CreateDescriptor(),
                   VehicleDynamics::SkidSteeringModelComponent::CreateDescriptor(),
                   MotorizedJointComponent::CreateDescriptor(),
-                  URDFMetadataComponent::CreateDescriptor(),
                   JointPublisherComponent::CreateDescriptor(),
                   ManipulatorControllerComponent::CreateDescriptor() });
         }

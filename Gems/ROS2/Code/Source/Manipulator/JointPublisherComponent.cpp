@@ -1,11 +1,11 @@
 #include <ROS2/Manipulator/JointPublisherComponent.h>
 #include <AzCore/Serialization/EditContext.h>
+#include <AzCore/Component/TransformBus.h>
 #include <ROS2/ROS2Bus.h>
 #include <PhysX/Joint/PhysXJointRequestsBus.h>
 #include <Source/HingeJointComponent.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
 #include <ROS2/Frame/ROS2FrameComponent.h>
-#include <RobotImporter/URDFMetadataComponent.h>
 #include <ROS2/Utilities/ROS2Names.h>
 
 namespace ROS2
@@ -30,10 +30,6 @@ namespace ROS2
         provided.push_back(AZ_CRC_CE("JointPublisher"));
     }
 
-    void JointPublisherComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
-    {
-        required.push_back(AZ_CRC_CE("URDFMetadata"));
-    }
 
     void JointPublisherComponent::Reflect(AZ::ReflectContext* context)
     {
@@ -57,11 +53,20 @@ namespace ROS2
 
     void JointPublisherComponent::InitializeMap()
     {
-        if (auto* metadataComponent = GetEntity()->FindComponent<URDFMetadataComponent>())
+        AZStd::vector<AZ::EntityId> descendants;
+        AZ::TransformBus::EventResult(descendants, GetEntityId(), &AZ::TransformInterface::GetAllDescendants);
+
+        for (const AZ::EntityId& descendantID : descendants)
         {
-            m_hierarchyMap = metadataComponent->GetHierarchy();
-            AZ_Assert(m_hierarchyMap.size() > 0, "Hierarchy Map not initialized");
-            AZ_TracePrintf("JointPublisherComponent", "Map initialized");
+            AZ::Entity* entity = nullptr;
+            AZ::ComponentApplicationBus::BroadcastResult(entity, &AZ::ComponentApplicationRequests::FindEntity, descendantID);
+            AZ_Assert(entity, "Unknown entity %s", descendantID.ToString().c_str());
+            auto* frameComponent = entity->FindComponent<ROS2FrameComponent>();
+            auto* hingeComponent = entity->FindComponent<PhysX::HingeJointComponent>();
+            if (frameComponent && hingeComponent)
+            {
+                m_hierarchyMap[frameComponent->GetJointName()] = descendantID;
+            }
         }
     }
 

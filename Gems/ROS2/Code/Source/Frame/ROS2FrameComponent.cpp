@@ -206,7 +206,7 @@ namespace ROS2
     void ROS2FrameComponent::SetJointName(const AZStd::string& jointNameString)
     {
         m_jointNameString = jointNameString;
-        m_jointName = AZ::Name(m_jointNameString.c_str());
+        m_jointName = AZ::Name(ROS2Names::GetNamespacedName(GetNamespace(), m_jointNameString).c_str());
     }
 
     void ROS2FrameComponent::Reflect(AZ::ReflectContext* context)

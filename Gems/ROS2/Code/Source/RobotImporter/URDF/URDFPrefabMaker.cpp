@@ -20,7 +20,6 @@
 #include <ROS2/ROS2GemUtilities.h>
 #include <ROS2/Spawner/SpawnerBus.h>
 #include <RobotControl/ROS2RobotControlComponent.h>
-#include <RobotImporter/URDFMetadataComponent.h>
 #include <RobotImporter/Utils/RobotImporterUtils.h>
 
 namespace ROS2
@@ -178,14 +177,14 @@ namespace ROS2
 
         // Create the joints
         auto joints = Utils::GetAllJoints(m_model->root_link_->child_links);
-        AZStd::unordered_map<AZ::Name, AZ::EntityId> hierarchyMap;
-        for (const auto& [name, jointPtr] : joints)
+
+        for (const auto& [jointName, jointPtr] : joints)
         {
-            AZ_Assert(jointPtr, "joint %s is null", name.c_str());
+            AZ_Assert(jointPtr, "joint %s is null", jointName.c_str());
             AZ_TracePrintf(
                 "CreatePrefabFromURDF",
                 "Creating joint %s : %s -> %s\n",
-                name.c_str(),
+                jointName.c_str(),
                 jointPtr->parent_link_name.c_str(),
                 jointPtr->child_link_name.c_str());
 
@@ -198,24 +197,31 @@ namespace ROS2
                 auto result = m_jointsMaker.AddJointComponent(jointPtr, childEntity.GetValue(), leadEntity.GetValue());
                 if (result.IsSuccess())
                 {
-                    m_status.emplace(name, AZStd::string::format("created as %llu", result.GetValue()));
+                    m_status.emplace(jointName, AZStd::string::format("created as %llu", result.GetValue()));
                 }
                 else
                 {
-                    m_status.emplace(name, AZStd::string::format("Failed:  %s", result.GetError().c_str()));
+                    m_status.emplace(jointName, AZStd::string::format("Failed:  %s", result.GetError().c_str()));
                 }
-                hierarchyMap[AZ::Name(name.c_str())] = childEntity.GetValue();
+
+                AZ::Entity* entity = AzToolsFramework::GetEntityById(childEntity.GetValue());
+                if (entity)
+                {
+                    auto* component = Utils::GetGameOrEditorComponent<ROS2FrameComponent>(entity);
+                    AZ_Assert(component, "ROS2 Frame Component does not exist for %s", childEntity.GetValue().ToString().c_str());
+                    component->SetJointName(AZStd::string(jointName.c_str()));
+                }
+
             }
             else
             {
-                AZ_Warning("CreatePrefabFromURDF", false, "cannot create joint %s", name.c_str());
+                AZ_Warning("CreatePrefabFromURDF", false, "cannot create joint %s", jointName.c_str());
             }
         }
 
         MoveEntityToDefaultSpawnPoint(createEntityRoot.GetValue());
 
         auto contentEntityId = createEntityRoot.GetValue();
-        AddURDFMetadataComponent(contentEntityId, hierarchyMap);
         AddRobotControl(contentEntityId);
 
         // Create prefab, save it to disk immediately
@@ -276,17 +282,6 @@ namespace ROS2
         return AZ::Success(entityId);
     }
 
-    void URDFPrefabMaker::AddURDFMetadataComponent(AZ::EntityId rootEntityId, const AZStd::unordered_map<AZ::Name, AZ::EntityId> & hierarchyMap)
-    {
-        const auto componentId = Utils::CreateComponent(rootEntityId, URDFMetadataComponent::TYPEINFO_Uuid());
-        if (componentId)
-        {
-            AZ::Entity* rootEntity = AzToolsFramework::GetEntityById(rootEntityId);
-            AZ_Assert(rootEntity, "Unknown entity %s", rootEntityId.ToString().c_str());
-            auto* component = Utils::GetGameOrEditorComponent<URDFMetadataComponent>(rootEntity);
-            component->SetHierarchy(hierarchyMap);
-        }
-    }
 
     void URDFPrefabMaker::AddRobotControl(AZ::EntityId rootEntityId)
     {
