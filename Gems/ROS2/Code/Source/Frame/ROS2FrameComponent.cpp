@@ -15,6 +15,7 @@
 #include <ROS2/ROS2Bus.h>
 #include <ROS2/ROS2GemUtilities.h>
 #include <ROS2/Utilities/ROS2Names.h>
+
 namespace ROS2
 {
     namespace Internal
