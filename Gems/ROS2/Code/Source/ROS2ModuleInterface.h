@@ -20,9 +20,6 @@
 #include <ROS2/Manipulation/JointPublisherComponent.h>
 #include <ROS2/Manipulation/ManipulatorControllerComponent.h>
 #include <ROS2/Manipulation/MotorizedJointComponent.h>
-#include <ROS2/Manipulation/JointPublisherComponent.h>
-#include <ROS2/Manipulation/ManipulatorControllerComponent.h>
-#include <ROS2/Manipulation/MotorizedJointComponent.h>
 #include <RobotControl/Controllers/AckermannController/AckermannControlComponent.h>
 #include <RobotControl/Controllers/RigidBodyController/RigidBodyTwistControlComponent.h>
 #include <RobotControl/Controllers/SkidSteeringController/SkidSteeringControlComponent.h>
