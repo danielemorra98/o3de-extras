@@ -1,4 +1,4 @@
-#include <ROS2/Manipulator/JointPublisherComponent.h>
+#include <ROS2/Manipulation/JointPublisherComponent.h>
 #include <AzCore/Serialization/EditContext.h>
 #include <AzCore/Component/TransformBus.h>
 #include <ROS2/ROS2Bus.h>

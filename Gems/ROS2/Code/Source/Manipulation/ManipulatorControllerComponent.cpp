@@ -1,4 +1,4 @@
-#include <ROS2/Manipulator/ManipulatorControllerComponent.h>
+#include <ROS2/Manipulation/ManipulatorControllerComponent.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
 #include <AzCore/Component/TransformBus.h>
 #include <AzCore/Serialization/EditContext.h>
