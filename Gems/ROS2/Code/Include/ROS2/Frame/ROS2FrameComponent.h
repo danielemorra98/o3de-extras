@@ -52,13 +52,13 @@ namespace ROS2
 
         //////////////////////////////////////////////////////////////////////////
         // Joint scenario
-        //! Get the joint name. It comes from URDF or users can set it in the Editor view 
-        //! @note The joint name is needed by other component to address the right joint for control or publishing the joint position 
+        //! Get the Namespace with attached the joint name. 
+        //! @note The namespaced joint name is designed as metadata to a physics joint on the same entity to enable name-based joint addressing and joint state publishing for other components (cf. below).
         //! @see JointPublisherComponent or ManipulatorControllerComponent
-        //! @return The joint name, ready to send in a ROS2 message
-        AZ::Name GetJointName() const;
+        //! @return The namespaced joint name, ready to send in a ROS2 message
+        AZ::Name GetNamespacedJointName() const;
 
-        //! Set the above-mentioned joint name
+        //! Set the joint name. May be populated during URDF import or set by the user in the Editor view 
         void SetJointName(const AZStd::string& jointNameString);
 
         //! Get a namespace, which should be used for any publisher or subscriber in the same entity.

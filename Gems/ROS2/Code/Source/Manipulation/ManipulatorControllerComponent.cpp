@@ -123,7 +123,7 @@ namespace ROS2
             auto* hingeComponent = entity->FindComponent<PhysX::HingeJointComponent>();
             if (frameComponent && hingeComponent)
             {
-                m_hierarchyMap[frameComponent->GetJointName()] = descendantID;
+                m_hierarchyMap[frameComponent->GetNamespacedJointName()] = descendantID;
             }
         }
     }
