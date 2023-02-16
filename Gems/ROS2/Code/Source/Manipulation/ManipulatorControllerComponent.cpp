@@ -12,13 +12,13 @@
 namespace ROS2
 {
     // ROS2 Action Server class
-    FollowJointTrajectoryActionServer::FollowJointTrajectoryActionServer()
+    FollowJointTrajectoryActionServer::FollowJointTrajectoryActionServer(AZStd::string ROS2ControllerName)
     {
         auto ros2Node = ROS2Interface::Get()->GetNode();
         // Create the ROS2 action server
         this->m_actionServer = rclcpp_action::create_server<FollowJointTrajectory>(
             ros2Node,
-            "panda_arm_controller/follow_joint_trajectory",
+            ROS2ControllerName.append("/follow_joint_trajectory").data(),
             AZStd::bind(&FollowJointTrajectoryActionServer::goal_received_callback, this, AZStd::placeholders::_1, AZStd::placeholders::_2),
             AZStd::bind(&FollowJointTrajectoryActionServer::goal_cancelled_callback, this, AZStd::placeholders::_1),
             AZStd::bind(&FollowJointTrajectoryActionServer::goal_accepted_callback, this, AZStd::placeholders::_1));
@@ -55,6 +55,7 @@ namespace ROS2
     void ManipulatorControllerComponent::Activate()
     {
         AZ::TickBus::Handler::BusConnect();
+        m_actionServerClass = FollowJointTrajectoryActionServer(m_ROS2ControllerName);
         InitializePid();        
     }
 
@@ -77,6 +78,7 @@ namespace ROS2
         {
             serialize->Class<ManipulatorControllerComponent, AZ::Component>()
                 ->Version(0)
+                ->Field("ROS2 Action Server", &ManipulatorControllerComponent::m_ROS2ControllerName)
                 ->Field("Controller type", &ManipulatorControllerComponent::m_controllerType)
                 ->Field("PID Configuration Vector", &ManipulatorControllerComponent::m_pidConfigurationVector);
 
@@ -86,6 +88,11 @@ namespace ROS2
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game"))
                     ->Attribute(AZ::Edit::Attributes::Category, "ROS2")
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default,
+                        &ManipulatorControllerComponent::m_ROS2ControllerName,
+                        "ROS2 Controller Name",
+                        "It should mirror the name of the ROS2 Controller used as prefix of the ROS2 FollowJointTrajectory Server")
                     ->DataElement(
                         AZ::Edit::UIHandlers::ComboBox,
                         &ManipulatorControllerComponent::m_controllerType,

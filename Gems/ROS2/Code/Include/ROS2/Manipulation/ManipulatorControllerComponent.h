@@ -23,7 +23,8 @@ namespace ROS2
     public:
         using GoalHandleFollowJointTrajectory = rclcpp_action::ServerGoalHandle<control_msgs::action::FollowJointTrajectory>;
         using FollowJointTrajectory = control_msgs::action::FollowJointTrajectory;
-        FollowJointTrajectoryActionServer();
+        FollowJointTrajectoryActionServer() = default;
+        FollowJointTrajectoryActionServer(AZStd::string ROS2ControllerName);
 
         rclcpp_action::Server<FollowJointTrajectory>::SharedPtr m_actionServer;
         std::shared_ptr<GoalHandleFollowJointTrajectory> m_goalHandle;
@@ -80,6 +81,7 @@ namespace ROS2
         void SetJointVelocity(AZ::Component * hingeComponent, const float desiredVelocity);
 
         FollowJointTrajectoryActionServer m_actionServerClass;
+        AZStd::string m_ROS2ControllerName;
         bool m_initialized{false};
         bool m_initializedTrajectory{false};
         Controller m_controllerType = Controller::FeedForward;
