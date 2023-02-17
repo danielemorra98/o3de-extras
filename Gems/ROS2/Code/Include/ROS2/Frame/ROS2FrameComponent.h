@@ -59,6 +59,7 @@ namespace ROS2
         AZ::Name GetNamespacedJointName() const;
 
         //! Set the joint name. May be populated during URDF import or set by the user in the Editor view 
+        //! @note The provided jointNameString should be relative, not absolute. The namespace prefix is added automatically.
         void SetJointName(const AZStd::string& jointNameString);
 
         //! Get a namespace, which should be used for any publisher or subscriber in the same entity.
