@@ -24,7 +24,7 @@ namespace ROS2
         using GoalHandleFollowJointTrajectory = rclcpp_action::ServerGoalHandle<control_msgs::action::FollowJointTrajectory>;
         using FollowJointTrajectory = control_msgs::action::FollowJointTrajectory;
         FollowJointTrajectoryActionServer() = default;
-        FollowJointTrajectoryActionServer(AZStd::string ROS2ControllerName);
+        void CreateServer(AZStd::string ROS2ControllerName);
 
         rclcpp_action::Server<FollowJointTrajectory>::SharedPtr m_actionServer;
         std::shared_ptr<GoalHandleFollowJointTrajectory> m_goalHandle;

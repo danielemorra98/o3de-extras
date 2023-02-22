@@ -11,7 +11,7 @@
 namespace ROS2
 {
     // ROS2 Action Server class
-    FollowJointTrajectoryActionServer::FollowJointTrajectoryActionServer(AZStd::string ROS2ControllerName)
+    void FollowJointTrajectoryActionServer::CreateServer(AZStd::string ROS2ControllerName)
     {
         auto ros2Node = ROS2Interface::Get()->GetNode();
         // Create the ROS2 action server
@@ -46,7 +46,7 @@ namespace ROS2
     {
         AZ_TracePrintf("ManipulatorControllerComponent", "FollowJointTrajectory manipulator Goal accepted");
         this->m_goalHandle = goal_handle;
-        m_goalStatus = GoalStatus::Active;     
+        this->m_goalStatus = GoalStatus::Active;     
     }
 
 
@@ -54,7 +54,7 @@ namespace ROS2
     void ManipulatorControllerComponent::Activate()
     {
         AZ::TickBus::Handler::BusConnect();
-        m_actionServerClass = FollowJointTrajectoryActionServer(m_ROS2ControllerName);
+        m_actionServerClass.CreateServer(m_ROS2ControllerName);
         InitializePid();        
     }
 
@@ -237,6 +237,7 @@ namespace ROS2
         {
             m_initializedTrajectory = false;
             m_actionServerClass.m_goalStatus = GoalStatus::Concluded;
+            AZ_TracePrintf("ManipulatorControllerComponent", "Goal Concluded: all points reached");
             return;
         }
 
