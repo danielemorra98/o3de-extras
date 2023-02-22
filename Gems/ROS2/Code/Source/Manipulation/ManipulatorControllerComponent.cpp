@@ -5,7 +5,6 @@
 #include <AzCore/std/functional.h>
 #include <PhysX/Joint/PhysXJointRequestsBus.h>
 #include <Source/HingeJointComponent.h>
-#include <ROS2/VehicleDynamics/DriveModels/PidConfiguration.h>
 #include <ROS2/Frame/ROS2FrameComponent.h>
 #include <ROS2/ROS2Bus.h>
 

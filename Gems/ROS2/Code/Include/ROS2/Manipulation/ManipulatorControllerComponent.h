@@ -3,7 +3,7 @@
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/Name/Name.h>
-#include <ROS2/VehicleDynamics/DriveModels/PidConfiguration.h>
+#include <ROS2/Utilities/Controllers/PidConfiguration.h>
 #include <control_msgs/action/follow_joint_trajectory.hpp>
 #include <rclcpp_action/server.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -86,7 +86,7 @@ namespace ROS2
         bool m_initializedTrajectory{false};
         Controller m_controllerType = Controller::FeedForward;
         bool m_keepStillPositionInitialize{false};
-        AZStd::vector<VehicleDynamics::PidConfiguration> m_pidConfigurationVector;
+        AZStd::vector<Controllers::PidConfiguration> m_pidConfigurationVector;
         AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
         AZStd::unordered_map<AZ::Name, float> m_jointKeepStillPosition;
         trajectory_msgs::msg::JointTrajectory m_trajectory;
