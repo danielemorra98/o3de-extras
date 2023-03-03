@@ -38,6 +38,8 @@ set(FILES
         Source/Lidar/LidarTemplateUtils.h
         Source/Lidar/ROS2LidarSensorComponent.cpp
         Source/Lidar/ROS2LidarSensorComponent.h
+        Source/Manipulation/DeltaRobotControllerComponent.cpp
+        Source/Manipulation/MotorConfiguration.cpp
         Source/Manipulation/MotorizedJointComponent.cpp
         Source/Manipulation/JointPublisherComponent.cpp
         Source/Manipulation/ManipulatorControllerComponent.cpp
