@@ -68,7 +68,7 @@ namespace ROS2
 
     void ManipulatorControllerComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
     {
-        required.push_back(AZ_CRC_CE("JointPublisher"));
+        required.push_back(AZ_CRC_CE("JointPublisherService"));
     }
 
 
