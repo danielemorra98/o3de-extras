@@ -17,6 +17,7 @@
 #include <Lidar/ROS2LidarSensorComponent.h>
 #include <Odometry/ROS2OdometrySensorComponent.h>
 #include <ROS2/Frame/ROS2FrameComponent.h>
+#include <ROS2/Manipulation/GripperComponent.h>
 #include <ROS2/Manipulation/JointPublisherComponent.h>
 #include <ROS2/Manipulation/ManipulatorControllerComponent.h>
 #include <ROS2/Manipulation/MotorizedJointComponent.h>
@@ -71,6 +72,7 @@ namespace ROS2
                   VehicleDynamics::SkidSteeringModelComponent::CreateDescriptor(),
                   MotorizedJointComponent::CreateDescriptor(),
                   JointPublisherComponent::CreateDescriptor(),
+                  GripperComponent::CreateDescriptor(),
                   ManipulatorControllerComponent::CreateDescriptor() });
         }
 

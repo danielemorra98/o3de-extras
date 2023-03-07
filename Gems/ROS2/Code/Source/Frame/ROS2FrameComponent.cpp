@@ -97,9 +97,9 @@ namespace ROS2
             {
                 const bool hasJoints = Internal::CheckIfEntityHasComponentOfType(
                     m_entity, AZ::Uuid("{B01FD1D2-1D91-438D-874A-BF5EB7E919A8}")); // Physx::JointComponent;
-                const bool hasFixedJoints = Internal::CheckIfEntityHasComponentOfType(
-                    m_entity, AZ::Uuid("{02E6C633-8F44-4CEE-AE94-DCB06DE36422}")); // Physx::FixedJointComponent
-                m_isDynamic = hasJoints && !hasFixedJoints;
+                // const bool hasFixedJoints = Internal::CheckIfEntityHasComponentOfType(
+                //     m_entity, AZ::Uuid("{02E6C633-8F44-4CEE-AE94-DCB06DE36422}")); // Physx::FixedJointComponent
+                m_isDynamic = hasJoints; // && !hasFixedJoints;
             }
 
             AZ_TracePrintf(
