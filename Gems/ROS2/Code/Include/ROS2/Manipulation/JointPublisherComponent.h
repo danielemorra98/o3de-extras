@@ -27,6 +27,9 @@ namespace ROS2
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
         static void Reflect(AZ::ReflectContext* context);
 
+        AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
+        AZStd::unordered_map<AZ::Name, AZ::EntityId> &GetHierarchyMap();
+
     private:
         void PublishMessage();
         void UpdateMessage();
@@ -36,7 +39,6 @@ namespace ROS2
         void InitializeJointStateMessage();
 
         std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::JointState>> m_jointstatePublisher;
-        AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
         sensor_msgs::msg::JointState m_jointstateMsg;
         bool m_initialized{false};
         float m_timeElapsedSinceLastTick = 0.0f;

@@ -70,7 +70,6 @@ namespace ROS2
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
     private:
-        void InitializeMap();
         void InitializePid();
         void InitializeCurrentPosition();
         void KeepStillPosition(const uint64_t deltaTimeNs);

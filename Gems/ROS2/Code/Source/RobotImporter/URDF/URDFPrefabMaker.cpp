@@ -282,7 +282,6 @@ namespace ROS2
         return AZ::Success(entityId);
     }
 
-
     void URDFPrefabMaker::AddRobotControl(AZ::EntityId rootEntityId)
     {
         const auto componentId = Utils::CreateComponent(rootEntityId, ROS2RobotControlComponent::TYPEINFO_Uuid());

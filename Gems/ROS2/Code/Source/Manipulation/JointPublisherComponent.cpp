@@ -70,6 +70,11 @@ namespace ROS2
         }
     }
 
+    AZStd::unordered_map<AZ::Name, AZ::EntityId>  &JointPublisherComponent::GetHierarchyMap()
+    {
+        return m_hierarchyMap;
+    }
+
     void JointPublisherComponent::InitializeJointStateMessage()
     {
         InitializeMap();
