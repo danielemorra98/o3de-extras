@@ -27,7 +27,7 @@ namespace ROS2
 
     void JointPublisherComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
     {
-        provided.push_back(AZ_CRC_CE("JointPublisher"));
+        provided.push_back(AZ_CRC_CE("JointPublisherService"));
     }
 
 
