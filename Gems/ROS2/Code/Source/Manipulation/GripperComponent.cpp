@@ -148,7 +148,7 @@ namespace ROS2
             const auto rotation = AZ::Quaternion::CreateFromEulerRadiansZYX(
                 { 0.0f, -(angle.GetY() + rootRotation.GetY()), angle.GetZ() + rootRotation.GetZ() });
 
-            directions.emplace_back(rotation.TransformVector(AZ::Vector3::CreateAxisZ()));
+            directions.emplace_back(rotation.TransformVector(AZ::Vector3::CreateAxisX()));
             // directions.emplace_back(rotation.GetEulerRadians());
         }
 
