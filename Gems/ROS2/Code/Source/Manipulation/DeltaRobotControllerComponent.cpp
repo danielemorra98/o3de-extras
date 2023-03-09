@@ -38,7 +38,7 @@ namespace ROS2
 
     void DeltaRobotControllerComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
     {
-        required.push_back(AZ_CRC_CE("JointPublisher"));
+        required.push_back(AZ_CRC_CE("JointPublisherService"));
     }
 
 
@@ -120,7 +120,6 @@ namespace ROS2
         auto componentId = hingeComponent->GetId();
         auto entityId = hingeComponent->GetEntityId();
         const AZ::EntityComponentIdPair id(entityId,componentId);
-        AZ_TracePrintf("DeltaRobotControllerComponent", "Calling PhysX API for %d with velocity: %f", componentId, desiredVelocity);
         PhysX::JointRequestBus::Event(id, &PhysX::JointRequests::SetVelocity, desiredVelocity);
     }
 
