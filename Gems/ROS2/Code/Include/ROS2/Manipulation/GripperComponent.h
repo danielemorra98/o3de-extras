@@ -49,6 +49,7 @@ namespace ROS2
         rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr m_ROS2gripperService;
         AZStd::vector<AZ::Vector3> m_raycastPoint;
         AZStd::vector<AZ::Vector3> m_rayRelativeRotations;
+        AZStd::unordered_map<AZ::EntityId,float> m_mapObjectMinDistance;
         AzPhysics::SceneHandle m_sceneHandle{ AzPhysics::InvalidSceneHandle };
         float m_range{0.0f};
         float m_maxGripperForce{0.0f};

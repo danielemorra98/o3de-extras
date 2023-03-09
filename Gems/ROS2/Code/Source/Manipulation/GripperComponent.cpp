@@ -149,7 +149,6 @@ namespace ROS2
                 { 0.0f, -(angle.GetY() + rootRotation.GetY()), angle.GetZ() + rootRotation.GetZ() });
 
             directions.emplace_back(rotation.TransformVector(AZ::Vector3::CreateAxisX()));
-            // directions.emplace_back(rotation.GetEulerRadians());
         }
 
         return directions;
@@ -175,6 +174,8 @@ namespace ROS2
         AZ_Assert(!m_rayRelativeRotations.empty(), "Ray poses are not configured. Unable to Perform a raycast.");
         AZ_Assert(m_range > 0.0f, "Ray range is not configured. Unable to Perform a raycast.");
 
+        m_mapObjectMinDistance.clear();
+
         if (m_sceneHandle == AzPhysics::InvalidSceneHandle)
         {
             m_sceneHandle = GetPhysicsSceneFromEntityId(GetEntityId());
@@ -189,7 +190,6 @@ namespace ROS2
         AZStd::vector<AZStd::pair<AZ::EntityId,AZ::Vector3>> results;
         AzPhysics::SceneQueryRequests requests;
         requests.reserve(rayAbsoluteDirections.size());
-        results.reserve(rayAbsoluteDirections.size());
         for (const AZ::Vector3& direction : rayAbsoluteDirections)
         {
             AZStd::shared_ptr<AzPhysics::RayCastRequest> request = AZStd::make_shared<AzPhysics::RayCastRequest>();
@@ -220,15 +220,32 @@ namespace ROS2
             const auto& requestResult = requestResults[i];
             if (!requestResult.m_hits.empty())
             {
-                // TODO: 
                 if (m_visualise)
                 {
                     m_raycastPoint.push_back(requestResult.m_hits[0].m_position);
                 }
 
-                // AZ::Vector3 gripperForce = ComputeForce(requestResult.m_hits[0].m_distance, rayAbsoluteDirections.at(rayAbsoluteDirections.size()-i-1));
-                AZ::Vector3 gripperForce = ComputeForce(requestResult.m_hits[0].m_distance, rayAbsoluteDirections.at(i));
-                results.push_back(AZStd::make_pair(requestResult.m_hits[0].m_entityId, gripperForce));
+                if (requestResult.m_hits[0].m_distance > 0.005 && m_mapObjectMinDistance.find(requestResult.m_hits[0].m_entityId) != m_mapObjectMinDistance.end())
+                {
+                    AZ::Vector3 gripperForce = ComputeForce(requestResult.m_hits[0].m_distance, rayAbsoluteDirections.at(i));
+                    results.push_back(AZStd::make_pair(requestResult.m_hits[0].m_entityId, gripperForce));
+                }
+                else
+                {
+                    if (m_mapObjectMinDistance.find(requestResult.m_hits[0].m_entityId) != m_mapObjectMinDistance.end())
+                    {
+                        if (requestResult.m_hits[0].m_distance <= m_mapObjectMinDistance[requestResult.m_hits[0].m_entityId])
+                        {
+                            m_mapObjectMinDistance[requestResult.m_hits[0].m_entityId] = requestResult.m_hits[0].m_distance;
+                        }
+                    }
+                    else
+                    {
+                        m_mapObjectMinDistance[requestResult.m_hits[0].m_entityId] = requestResult.m_hits[0].m_distance;
+                    }
+                    // gripperForce = {0.0f,0.0f,0.0f};
+                }
+
             }
         }
         return results;
@@ -239,8 +256,8 @@ namespace ROS2
     {
         AZ_Assert(m_maxGripperForce > 0.0f, "Gripper maximum force is not configured. Unable to Apply Force on close objects.");
         float arctan_model_gripper = - 2 / 3.1416 * AZStd::atan(10*gripperDistance/m_range) + 1;
-        float force_magnitude = m_maxGripperForce * arctan_model_gripper;
-        AZ::Vector3 force = - force_magnitude * normalizeDirection;
+        float force_magnitude = m_maxGripperForce / (m_horizontalLayers * m_verticalLayers) * arctan_model_gripper;
+        AZ::Vector3 force = force_magnitude * normalizeDirection;
         return force;
     }
 
@@ -271,21 +288,29 @@ namespace ROS2
     {
         if (m_gripperState)
         {
-            AZStd::vector<AZStd::pair<AZ::EntityId,AZ::Vector3>> objectsDetected = PerformRaycast();
-            if (!objectsDetected.empty())
-            {
-                for (auto& object : objectsDetected)
-                {
-                    AZ::EntityId objectEntityId = object.first;
-                    AZ::Vector3 gripperForce = object.second;
-                    // AZ_TracePrintf("GripperComponent", "Find the object %s at %f meters", objectEntityId.ToString().c_str(), objectDistance);
+            AZStd::vector<AZStd::pair<AZ::EntityId,AZ::Vector3>> intersections = PerformRaycast();
 
-                    Physics::RigidBodyRequestBus::Event(objectEntityId, &Physics::RigidBodyRequests::ApplyLinearImpulse, gripperForce * deltaTime);
+            if (intersections.size() > 0)
+            {
+                AZ_TracePrintf("GripperComponent", "Apply the force to the object(s) grasped");
+                for (auto& rayintersected : intersections)
+                {
+                    AZ::EntityId objectEntityId = rayintersected.first;
+                    AZ::Vector3 gripperForce = rayintersected.second;
+                    Physics::RigidBodyRequestBus::Event(objectEntityId, &Physics::RigidBodyRequests::ApplyLinearImpulse, - gripperForce * deltaTime);
+                    Physics::RigidBodyRequestBus::Event(GetEntityId(), &Physics::RigidBodyRequests::ApplyLinearImpulse, gripperForce * deltaTime);
                 }
             }
-            else
+
+            if (m_mapObjectMinDistance.size() > 0)
             {
-                AZ_TracePrintf("GripperComponent", "Do not find any object in the nearby!");
+                AZ_TracePrintf("GripperComponent", "Apply the gripper velocity to the object(s) grasped");
+                AZ::Vector3 gripperVelocity;
+                Physics::RigidBodyRequestBus::EventResult(gripperVelocity, GetEntityId(), &Physics::RigidBodyRequests::GetLinearVelocity);
+                for ([[maybe_unused]] auto& [objectEntityId, minDistance] : m_mapObjectMinDistance)
+                {
+                    Physics::RigidBodyRequestBus::Event(objectEntityId, &Physics::RigidBodyRequests::SetLinearVelocity, gripperVelocity);
+                }
             }
 
             if (m_visualise)
