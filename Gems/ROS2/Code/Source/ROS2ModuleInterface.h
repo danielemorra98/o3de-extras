@@ -18,6 +18,7 @@
 #include <Odometry/ROS2OdometrySensorComponent.h>
 #include <ROS2/Frame/ROS2FrameComponent.h>
 #include <ROS2/Manipulation/GripperComponent.h>
+#include <ROS2/Manipulation/DeltaRobotControllerComponent.h>
 #include <ROS2/Manipulation/JointPublisherComponent.h>
 #include <ROS2/Manipulation/ManipulatorControllerComponent.h>
 #include <ROS2/Manipulation/MotorizedJointComponent.h>
@@ -31,7 +32,6 @@
 #include <VehicleDynamics/ModelComponents/AckermannModelComponent.h>
 #include <VehicleDynamics/ModelComponents/SkidSteeringModelComponent.h>
 #include <VehicleDynamics/VehicleModelComponent.h>
-
 #include <VehicleDynamics/WheelControllerComponent.h>
 
 namespace ROS2
@@ -73,7 +73,8 @@ namespace ROS2
                   MotorizedJointComponent::CreateDescriptor(),
                   JointPublisherComponent::CreateDescriptor(),
                   GripperComponent::CreateDescriptor(),
-                  ManipulatorControllerComponent::CreateDescriptor() });
+                  ManipulatorControllerComponent::CreateDescriptor(),
+                  DeltaRobotControllerComponent::CreateDescriptor() });
         }
 
         //! Add required SystemComponents to the SystemEntity.
