@@ -1,3 +1,4 @@
+#include "FollowJointTrajectoryActionServer.h"
 #include <ROS2/Manipulation/ManipulatorControllerComponent.h>
 #include <ROS2/Manipulation/JointPublisherComponent.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
@@ -7,62 +8,25 @@
 #include <PhysX/Joint/PhysXJointRequestsBus.h>
 #include <Source/HingeJointComponent.h>
 #include <ROS2/Frame/ROS2FrameComponent.h>
-#include <ROS2/ROS2Bus.h>
 
 namespace ROS2
 {
-    // ROS2 Action Server class
-    void FollowJointTrajectoryActionServer::CreateServer(AZStd::string ROS2ControllerName)
-    {
-        auto ros2Node = ROS2Interface::Get()->GetNode();
-        // Create the ROS2 action server
-        this->m_actionServer = rclcpp_action::create_server<FollowJointTrajectory>(
-            ros2Node,
-            ROS2ControllerName.append("/follow_joint_trajectory").data(),
-            AZStd::bind(&FollowJointTrajectoryActionServer::goal_received_callback, this, AZStd::placeholders::_1, AZStd::placeholders::_2),
-            AZStd::bind(&FollowJointTrajectoryActionServer::goal_cancelled_callback, this, AZStd::placeholders::_1),
-            AZStd::bind(&FollowJointTrajectoryActionServer::goal_accepted_callback, this, AZStd::placeholders::_1));
-
-    }
-
-    rclcpp_action::GoalResponse FollowJointTrajectoryActionServer::goal_received_callback(
-            [[maybe_unused]] const rclcpp_action::GoalUUID & uuid,
-            [[maybe_unused]] std::shared_ptr<const FollowJointTrajectory::Goal> goal)
-    {
-        // Dummy implementation
-        AZ_TracePrintf("ManipulatorControllerComponent", "FollowJointTrajectory manipulator Goal received");
-        return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
-    }
-
-    rclcpp_action::CancelResponse FollowJointTrajectoryActionServer::goal_cancelled_callback(
-            [[maybe_unused]] const std::shared_ptr<GoalHandleFollowJointTrajectory> goal_handle)
-    {
-        // Dummy implementation
-        AZ_TracePrintf("ManipulatorControllerComponent", "FollowJointTrajectory manipulator Goal canceled");
-        return rclcpp_action::CancelResponse::ACCEPT;
-    }
-
-    void FollowJointTrajectoryActionServer::goal_accepted_callback(
-            const std::shared_ptr<GoalHandleFollowJointTrajectory> goal_handle)
-    {
-        AZ_TracePrintf("ManipulatorControllerComponent", "FollowJointTrajectory manipulator Goal accepted");
-        this->m_goalHandle = goal_handle;
-        this->m_goalStatus = GoalStatus::Active;     
-    }
-
-
     // ManipulatorControllerComponent class
+    ManipulatorControllerComponent::ManipulatorControllerComponent() = default;
+    ManipulatorControllerComponent::~ManipulatorControllerComponent() = default;
+
     void ManipulatorControllerComponent::Activate()
     {
         AZ::TickBus::Handler::BusConnect();
-        m_actionServerClass.CreateServer(m_ROS2ControllerName);
+        m_actionServerClass = AZStd::make_unique<FollowJointTrajectoryActionServer>();
+        m_actionServerClass->CreateServer(m_ROS2ControllerName);
         InitializePid();        
     }
 
     void ManipulatorControllerComponent::Deactivate()
     {
         AZ::TickBus::Handler::BusDisconnect();
-        m_actionServerClass.m_actionServer.reset();
+        m_actionServerClass->m_actionServer.reset();
     }
 
 
@@ -78,7 +42,7 @@ namespace ROS2
         {
             serialize->Class<ManipulatorControllerComponent, AZ::Component>()
                 ->Version(0)
-                ->Field("ROS2 Action Server", &ManipulatorControllerComponent::m_ROS2ControllerName)
+                ->Field("ROS2 Controller name", &ManipulatorControllerComponent::m_ROS2ControllerName)
                 ->Field("Controller type", &ManipulatorControllerComponent::m_controllerType)
                 ->Field("PID Configuration Vector", &ManipulatorControllerComponent::m_pidConfigurationVector);
 
@@ -226,7 +190,7 @@ namespace ROS2
         if (m_trajectory.points.size() == 0)
         {
             m_initializedTrajectory = false;
-            m_actionServerClass.m_goalStatus = GoalStatus::Concluded;
+            m_actionServerClass->m_goalStatus = GoalStatus::Concluded;
             AZ_TracePrintf("ManipulatorControllerComponent", "Goal Concluded: all points reached");
             return;
         }
@@ -294,22 +258,22 @@ namespace ROS2
     {
         const uint64_t deltaTimeNs = deltaTime * 1'000'000'000;
 
-        if (m_actionServerClass.m_goalStatus == GoalStatus::Active)
+        if (m_actionServerClass->m_goalStatus == GoalStatus::Active)
         {
             if (!m_initializedTrajectory)
             {
-                m_trajectory = m_actionServerClass.m_goalHandle->get_goal()->trajectory;
+                m_trajectory = m_actionServerClass->m_goalHandle->get_goal()->trajectory;
                 m_timeStartingExecutionTraj = rclcpp::Time(ROS2::ROS2Interface::Get()->GetROSTimestamp());
                 m_initializedTrajectory = true;
             }
 
             ExecuteTrajectory(deltaTimeNs);
 
-            if (m_actionServerClass.m_goalStatus == GoalStatus::Concluded)
+            if (m_actionServerClass->m_goalStatus == GoalStatus::Concluded)
             {
-                m_actionServerClass.m_goalStatus = GoalStatus::Pending;
+                m_actionServerClass->m_goalStatus = GoalStatus::Pending;
                 auto result = std::make_shared<FollowJointTrajectory::Result>();
-                m_actionServerClass.m_goalHandle->succeed(result);
+                m_actionServerClass->m_goalHandle->succeed(result);
                 m_keepStillPositionInitialize = false;
             }
         }
