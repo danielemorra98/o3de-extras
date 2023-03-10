@@ -1,11 +1,11 @@
 #include <ROS2/Manipulation/JointPublisherComponent.h>
-#include <AzCore/Serialization/EditContext.h>
 #include <AzCore/Component/TransformBus.h>
-#include <ROS2/ROS2Bus.h>
-#include <PhysX/Joint/PhysXJointRequestsBus.h>
-#include <Source/HingeJointComponent.h>
 #include <AzCore/Component/ComponentApplicationBus.h>
+#include <AzCore/Serialization/EditContext.h>
+#include <rclcpp/qos.hpp>
+#include <PhysX/Joint/PhysXJointRequestsBus.h>
 #include <ROS2/Frame/ROS2FrameComponent.h>
+#include <ROS2/ROS2Bus.h>
 #include <ROS2/Utilities/ROS2Names.h>
 
 namespace ROS2
@@ -16,7 +16,7 @@ namespace ROS2
         auto ros2Node = ROS2::ROS2Interface::Get()->GetNode();
         auto ros2Frame = GetEntity()->FindComponent<ROS2FrameComponent>();
         AZStd::string namespacedTopic = ROS2Names::GetNamespacedName(ros2Frame->GetNamespace(), "joint_states");
-        m_jointstatePublisher = ros2Node->create_publisher<sensor_msgs::msg::JointState>(namespacedTopic.data(), rclcpp::QoS(1));        // TODO: add QoS instead of "1"
+        m_jointstatePublisher = ros2Node->create_publisher<sensor_msgs::msg::JointState>(namespacedTopic.data(), rclcpp::SystemDefaultsQoS());        // TODO: add QoS instead of "1"
     }
 
     void JointPublisherComponent::Deactivate()
@@ -30,6 +30,10 @@ namespace ROS2
         provided.push_back(AZ_CRC_CE("JointPublisherService"));
     }
 
+    void JointPublisherComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+        required.push_back(AZ_CRC_CE("ROS2Frame"));
+    }
 
     void JointPublisherComponent::Reflect(AZ::ReflectContext* context)
     {
@@ -46,12 +50,14 @@ namespace ROS2
                     ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game"))
                     ->Attribute(AZ::Edit::Attributes::Category, "ROS2")
                     ->DataElement(
-                        AZ::Edit::UIHandlers::Default, &JointPublisherComponent::m_frequency, "Frequency", "Frequency of publishing [Hz]");
+                        AZ::Edit::UIHandlers::Default, &JointPublisherComponent::m_frequency, "Frequency", "Frequency of publishing [Hz]")
+                    ->Attribute(AZ::Edit::Attributes::Min, 0.001f)
+                    ->Attribute(AZ::Edit::Attributes::Max, 1000.0f);
             }
         }
     }
 
-    void JointPublisherComponent::InitializeMap()
+    void JointPublisherComponent::Initialize()
     {
         AZStd::vector<AZ::EntityId> descendants;
         AZ::TransformBus::EventResult(descendants, GetEntityId(), &AZ::TransformInterface::GetAllDescendants);
@@ -65,53 +71,42 @@ namespace ROS2
             auto* hingeComponent = entity->FindComponent<PhysX::HingeJointComponent>();
             if (frameComponent && hingeComponent)
             {
-                m_hierarchyMap[frameComponent->GetNamespacedJointName()] = descendantID;
-            }
-        }
-    }
-
-    AZStd::unordered_map<AZ::Name, AZ::EntityId>  &JointPublisherComponent::GetHierarchyMap()
-    {
-        return m_hierarchyMap;
-    }
-
-    void JointPublisherComponent::InitializeJointStateMessage()
-    {
-        InitializeMap();
-        for ([[maybe_unused]] auto& [name, entityId] : m_hierarchyMap)
-        {
-            AZ::Entity* hingeEntity = nullptr;
-            AZ::ComponentApplicationBus::BroadcastResult(hingeEntity, &AZ::ComponentApplicationRequests::FindEntity, entityId);
-            AZ_Assert(hingeEntity, "Unknown entity %s", entityId.ToString().c_str());
-            if (hingeEntity && hingeEntity->FindComponent<PhysX::HingeJointComponent>() != nullptr)
-            {
-                m_jointstateMsg.name.push_back(name.GetCStr());
+                AZ::Name jointName = frameComponent->GetJointName();
+                m_hierarchyMap[jointName] = *hingeComponent;
+                m_jointstateMsg.name.push_back(jointName.GetCStr());
                 m_jointstateMsg.position.push_back(0.0f);
             }
         }
     }
 
+    AZStd::unordered_map<AZ::Name, PhysX::HingeJointComponent>  &JointPublisherComponent::GetHierarchyMap()
+    {
+        return m_hierarchyMap;
+    }
+
     void JointPublisherComponent::UpdateMessage()
     {
         int i = 0;
-        for ([[maybe_unused]] auto& [name, entityId] : m_hierarchyMap)
+        std_msgs::msg::Header ros_header;
+        ros_header.frame_id = GetFrameID().data();
+        ros_header.stamp = ROS2::ROS2Interface::Get()->GetROSTimestamp();
+        m_jointstateMsg.header = ros_header;
+        for ([[maybe_unused]] auto& [name, hingeComponent] : m_hierarchyMap)
         {
-            AZ::Entity* hingeEntity = nullptr;
-            AZ::ComponentApplicationBus::BroadcastResult(hingeEntity, &AZ::ComponentApplicationRequests::FindEntity, entityId);
-            AZ_Assert(hingeEntity, "Unknown entity %s", entityId.ToString().c_str());
-            if (auto* hingeComponent = hingeEntity->FindComponent<PhysX::HingeJointComponent>())
-            {
-                m_jointstateMsg.position[i] = GetJointPosition(hingeComponent);
-            }
+            // AZ::Entity* hingeEntity = nullptr;
+            // AZ::ComponentApplicationBus::BroadcastResult(hingeEntity, &AZ::ComponentApplicationRequests::FindEntity, entityId);
+            // AZ_Assert(hingeEntity, "Unknown entity %s", entityId.ToString().c_str());
+            // if (auto* hingeComponent = hingeEntity->FindComponent<PhysX::HingeJointComponent>())
+            m_jointstateMsg.position[i] = GetJointPosition(hingeComponent);
             i++;
         }
     }
 
-    float JointPublisherComponent::GetJointPosition(const AZ::Component* hingeComponent) const
+    float JointPublisherComponent::GetJointPosition(const AZ::Component& hingeComponent) const
     {
         float position{0};
-        auto componentId = hingeComponent->GetId();
-        auto entityId = hingeComponent->GetEntityId();
+        auto componentId = hingeComponent.GetId();
+        auto entityId = hingeComponent.GetEntityId();
         const AZ::EntityComponentIdPair id(entityId,componentId);
         PhysX::JointRequestBus::EventResult(position, id, &PhysX::JointRequests::GetPosition);
         return position;
@@ -119,23 +114,26 @@ namespace ROS2
 
     void JointPublisherComponent::PublishMessage()
     {
-        std_msgs::msg::Header ros_header;
-        ros_header.stamp = ROS2::ROS2Interface::Get()->GetROSTimestamp();
-        m_jointstateMsg.header = ros_header;
         UpdateMessage();
         m_jointstatePublisher->publish(m_jointstateMsg);
     }
 
+    AZStd::string JointPublisherComponent::GetFrameID() const
+    {
+        auto* ros2Frame = Utils::GetGameOrEditorComponent<ROS2FrameComponent>(GetEntity());
+        return ros2Frame->GetFrameID();
+    }
 
     void JointPublisherComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
-        if(!m_initialized)
+        if (!m_initialized)
         {
-            InitializeJointStateMessage();
+            Initialize();
             m_initialized = true;
         }
 
-        auto frameTime = m_frequency == 0 ? 1 : 1 / m_frequency;
+        AZ_Assert(m_frequency > 0, "JointPublisher frequency must be greater than zero");
+        auto frameTime = 1 / m_frequency;
 
         m_timeElapsedSinceLastTick += deltaTime;
         if (m_timeElapsedSinceLastTick < frameTime)

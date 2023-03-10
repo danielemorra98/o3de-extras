@@ -77,12 +77,6 @@ namespace ROS2
     {
         m_namespaceConfiguration.PopulateNamespace(IsTopLevel(), GetEntity()->GetName());
 
-        if (m_jointNameString.size() > 0)
-        {
-            m_jointName = AZ::Name(m_jointNameString.c_str());
-        }
-        
-
         if (m_publishTransform)
         {
             AZ_TracePrintf("ROS2FrameComponent", "Setting up %s", GetFrameID().data());
@@ -205,15 +199,14 @@ namespace ROS2
         return m_namespaceConfiguration.GetNamespace(parentNamespace);
     }
 
-    AZ::Name ROS2FrameComponent::GetNamespacedJointName() const
+    AZ::Name ROS2FrameComponent::GetJointName() const
     {
-        return m_jointName;
+        return AZ::Name(ROS2Names::GetNamespacedName(GetNamespace(), m_jointNameString).c_str());
     }
 
     void ROS2FrameComponent::SetJointName(const AZStd::string& jointNameString)
     {
         m_jointNameString = jointNameString;
-        m_jointName = AZ::Name(ROS2Names::GetNamespacedName(GetNamespace(), m_jointNameString).c_str());
     }
 
     void ROS2FrameComponent::Reflect(AZ::ReflectContext* context)
