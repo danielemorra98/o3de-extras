@@ -243,9 +243,7 @@ namespace ROS2
                     {
                         m_mapObjectMinDistance[requestResult.m_hits[0].m_entityId] = requestResult.m_hits[0].m_distance;
                     }
-                    // gripperForce = {0.0f,0.0f,0.0f};
                 }
-
             }
         }
         return results;
