@@ -93,10 +93,6 @@ namespace ROS2
         m_jointstateMsg.header = ros_header;
         for ([[maybe_unused]] auto& [name, hingeComponent] : m_hierarchyMap)
         {
-            // AZ::Entity* hingeEntity = nullptr;
-            // AZ::ComponentApplicationBus::BroadcastResult(hingeEntity, &AZ::ComponentApplicationRequests::FindEntity, entityId);
-            // AZ_Assert(hingeEntity, "Unknown entity %s", entityId.ToString().c_str());
-            // if (auto* hingeComponent = hingeEntity->FindComponent<PhysX::HingeJointComponent>())
             m_jointstateMsg.position[i] = GetJointPosition(hingeComponent);
             i++;
         }

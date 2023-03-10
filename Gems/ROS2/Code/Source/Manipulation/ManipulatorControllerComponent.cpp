@@ -143,12 +143,6 @@ namespace ROS2
             auto* jointPublisherComponent = GetEntity()->FindComponent<JointPublisherComponent>();
             if (jointPublisherComponent)
             {
-                // AZ::Component jointComponent = jointPublisherComponent->GetHierarchyMap()[jointName];
-                // AZ::Entity* jointEntity = nullptr;
-                // AZ::ComponentApplicationBus::BroadcastResult(jointEntity, &AZ::ComponentApplicationRequests::FindEntity, jointEntityId);
-                // AZ_Assert(jointEntity, "Unknown entity %s", jointEntityId.ToString().c_str());
-                // if (auto* hingeComponent = jointEntity->FindComponent<PhysX::HingeJointComponent>())
-
                 currentPosition = GetJointPosition(jointPublisherComponent->GetHierarchyMap()[jointName]);
                 float desiredVelocity;
                 if (m_controllerType == Controller::FeedForward)
@@ -209,12 +203,6 @@ namespace ROS2
             auto* jointPublisherComponent = GetEntity()->FindComponent<JointPublisherComponent>();
             if (jointPublisherComponent)
             {
-                // AZ::EntityId jointComponent = jointPublisherComponent->GetHierarchyMap()[AZ::Name(jointName.c_str())];
-                // AZ::Entity* jointEntity = nullptr;
-                // AZ::ComponentApplicationBus::BroadcastResult(jointEntity, &AZ::ComponentApplicationRequests::FindEntity, jointEntityId);
-                // AZ_Assert(jointEntity, "Unknown entity %s", jointEntityId.ToString().c_str());
-                // if (auto* hingeComponent = jointEntity->FindComponent<PhysX::HingeJointComponent>())
-
                 float currentPosition = GetJointPosition(jointPublisherComponent->GetHierarchyMap()[AZ::Name(jointName.c_str())]);
                 float desiredPosition = desiredGoal.positions[jointIndex];
                 float desiredVelocity;
@@ -274,7 +262,6 @@ namespace ROS2
         {
             KeepStillPosition(deltaTimeNs);
         }
-
     }
 
 } // namespace ROS2
