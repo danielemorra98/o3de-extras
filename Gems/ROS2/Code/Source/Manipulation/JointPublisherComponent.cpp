@@ -94,6 +94,7 @@ namespace ROS2
         for ([[maybe_unused]] auto& [name, hingeComponent] : m_hierarchyMap)
         {
             m_jointstateMsg.position[i] = GetJointPosition(hingeComponent);
+            m_jointstateMsg.name[i] = name.GetCStr();
             i++;
         }
     }

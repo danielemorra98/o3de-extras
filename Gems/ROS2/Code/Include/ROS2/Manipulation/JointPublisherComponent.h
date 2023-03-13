@@ -28,7 +28,6 @@ namespace ROS2
         static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
         static void Reflect(AZ::ReflectContext* context);
 
-        AZStd::unordered_map<AZ::Name, PhysX::HingeJointComponent> m_hierarchyMap;
         AZStd::unordered_map<AZ::Name, PhysX::HingeJointComponent> &GetHierarchyMap();
 
     private:
@@ -39,6 +38,7 @@ namespace ROS2
 
         float GetJointPosition(const AZ::Component& hingeComponent) const;
 
+        AZStd::unordered_map<AZ::Name, PhysX::HingeJointComponent> m_hierarchyMap;
         std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::JointState>> m_jointstatePublisher;
         sensor_msgs::msg::JointState m_jointstateMsg;
         bool m_initialized{false};
