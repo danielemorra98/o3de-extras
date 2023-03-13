@@ -50,16 +50,14 @@ namespace ROS2
         //! Set a above-mentioned frame id
         void SetFrameID(const AZStd::string& frameId);
 
-        //////////////////////////////////////////////////////////////////////////
-        // Joint scenario
-        //! Get the Namespace with attached the joint name. 
-        //! @note The namespaced joint name is designed as metadata to a physics joint on the same entity to enable name-based joint addressing and joint state publishing for other components (cf. below).
-        //! @see JointPublisherComponent or ManipulatorControllerComponent
+        //! Get the joint name including the namespace
+        //! @note Supplementary metadata for Joint components, necessary in some cases for joints addressed by name in ROS 2
         //! @return The namespaced joint name, ready to send in a ROS2 message
-        AZ::Name GetNamespacedJointName() const;
+        AZ::Name GetJointName() const;
 
-        //! Set the joint name. May be populated during URDF import or set by the user in the Editor view 
-        //! @note The provided jointNameString should be relative, not absolute. The namespace prefix is added automatically.
+        //! Set the joint name
+        //! @note May be populated during URDF import or set by the user in the Editor view 
+        //! @param jointNameString does not include the namespace. The namespace prefix is added automatically.
         void SetJointName(const AZStd::string& jointNameString);
 
         //! Get a namespace, which should be used for any publisher or subscriber in the same entity.
@@ -98,7 +96,6 @@ namespace ROS2
         NamespaceConfiguration m_namespaceConfiguration;
         AZStd::string m_frameName = "sensor_frame";
         AZStd::string m_jointNameString;
-        AZ::Name m_jointName;
 
         bool m_publishTransform = true;
         bool m_isDynamic = false;

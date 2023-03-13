@@ -38,7 +38,7 @@ namespace ROS2
 
     void DeltaRobotControllerComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
     {
-        required.push_back(AZ_CRC_CE("JointPublisher"));
+        required.push_back(AZ_CRC_CE("JointPublisherService"));
     }
 
 
@@ -74,7 +74,7 @@ namespace ROS2
         }
     }
 
-    void DeltaRobotControllerComponent::InitializeCurrentPosition()
+    void DeltaRobotControllerComponent::InitializeMotorConfiguration()
     {
         AZStd::array<AZ::Entity*, 3> motorEntities = {nullptr, nullptr, nullptr};
         
@@ -86,9 +86,18 @@ namespace ROS2
             auto* hingeComponent = motorEntities[i]->FindComponent<PhysX::HingeJointComponent>();
             if (frameComponent && hingeComponent)
             {
-                m_desiredJointStateMsg.name.push_back(frameComponent->GetNamespacedJointName().GetCStr());
-                m_desiredJointStateMsg.position.push_back(GetJointPosition(hingeComponent));
+                m_motors[i].m_hingeComponent = hingeComponent;
+                m_motors[i].m_hingeName = frameComponent->GetJointName();
             }
+        }
+    }
+
+    void DeltaRobotControllerComponent::InitializePositionMsg()
+    {       
+        for (auto & motor : m_motors)
+        {
+            m_desiredJointStateMsg.name.push_back(motor.m_hingeName.GetCStr());
+            m_desiredJointStateMsg.position.push_back(GetJointPosition(motor.m_hingeComponent));
         }
     }
 
@@ -109,7 +118,6 @@ namespace ROS2
 
     float DeltaRobotControllerComponent::ComputePIDJointVelocity(const float currentPosition, const float desiredPosition, const uint64_t & deltaTimeNs, int & motorIndex)
     {
-        // PID method
         float error = desiredPosition - currentPosition;
         float command = m_motors[motorIndex].m_motorPID.ComputeCommand(error, deltaTimeNs);
         return command;
@@ -126,31 +134,26 @@ namespace ROS2
 
     void DeltaRobotControllerComponent::GoToTarget([[maybe_unused]] const uint64_t deltaTimeNs)
     {
-        for (int motorIndex = 0; motorIndex<m_motors.size(); motorIndex++)
+        int motorIndex = 0;
+        for (auto & motor : m_motors)
         {
-            AZ::Entity* motorEntity = nullptr;
-            AZ::ComponentApplicationBus::BroadcastResult(motorEntity, &AZ::ComponentApplicationRequests::FindEntity, m_motors[motorIndex].m_motorEntityId);
-            AZ_Assert(motorEntity, "Unknown entity %s", m_motors[motorIndex].m_motorEntityId.ToString().c_str());
-            auto motorName = motorEntity->FindComponent<ROS2FrameComponent>()->GetNamespacedJointName().GetCStr();
-            int msg_index = 0;
+            auto motorName = motor.m_hingeName.GetCStr();
+            int msgIndex = 0;
             for (auto & jointName : m_desiredJointStateMsg.name)
             {
                 if (motorName == jointName)
                 {
-                    if (auto* hingeComponent = motorEntity->FindComponent<PhysX::HingeJointComponent>())
-                    {
-                        float currentPosition = GetJointPosition(hingeComponent);
-                        float desiredPosition = m_desiredJointStateMsg.position[msg_index];
-                        float desiredVelocity = ComputePIDJointVelocity(
-                            currentPosition, 
-                            desiredPosition, 
-                            deltaTimeNs,
-                            motorIndex);
-                        
-                        SetJointVelocity(hingeComponent, desiredVelocity);
-                    }
+                    float currentPosition = GetJointPosition(motor.m_hingeComponent);
+                    float desiredPosition = m_desiredJointStateMsg.position[msgIndex];
+                    float desiredVelocity = ComputePIDJointVelocity(
+                        currentPosition, 
+                        desiredPosition, 
+                        deltaTimeNs,
+                        motorIndex);
+                    
+                    SetJointVelocity(motor.m_hingeComponent, desiredVelocity);
                 }
-                msg_index++;
+                msgIndex++;
             }
         }  
     }
@@ -159,7 +162,8 @@ namespace ROS2
     {
         if(!m_initialized)
         {
-            InitializeCurrentPosition();
+            InitializeMotorConfiguration();
+            InitializePositionMsg();
             m_initialized = true;
         }
 

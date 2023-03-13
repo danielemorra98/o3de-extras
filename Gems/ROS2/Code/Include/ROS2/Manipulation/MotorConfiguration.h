@@ -22,7 +22,9 @@ namespace ROS2
 
         static void Reflect(AZ::ReflectContext* context);
 
-        Controllers::PidConfiguration m_motorPID;
         AZ::EntityId m_motorEntityId;
+        AZ::Component* m_hingeComponent;
+        AZ::Name m_hingeName;
+        Controllers::PidConfiguration m_motorPID;
     };
 } // namespace ROS2
