@@ -48,11 +48,8 @@ namespace ROS2
                 // ->Field("ROS2 Server", &GripperComponent::m_ROS2gripperService)
                 ->Field("Gripper type", &GripperComponent::m_gripperType)
                 ->Field("Visualization toggle", &GripperComponent::m_visualise)
-                ->Field("Vertical Layers", &GripperComponent::m_verticalLayers)
-                ->Field("Horizontal Layers", &GripperComponent::m_horizontalLayers)
-                ->Field("Vertical Range", &GripperComponent::m_rangeVertical)
+                ->Field("Cone Angle", &GripperComponent::m_coneAngle)
                 ->Field("Max Gripper Force", &GripperComponent::m_maxGripperForce)
-                ->Field("Horizontal Range", &GripperComponent::m_rangeHorizontal)
                 ->Field("Ignore Layer Collision", &GripperComponent::m_ignoreLayerCollision)
                 ->Field("Gripper application range", &GripperComponent::m_range);
 
@@ -74,24 +71,9 @@ namespace ROS2
                         "Debug visualization which draws the points of the raycast")
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default, 
-                        &GripperComponent::m_verticalLayers, 
-                        "Vertical Layers", 
-                        "Number of vertical raycast layer")
-                    ->DataElement(
-                        AZ::Edit::UIHandlers::Default, 
-                        &GripperComponent::m_horizontalLayers, 
-                        "Horizontal Layers", 
-                        "Number of Horizontal raycast layer")
-                    ->DataElement(
-                        AZ::Edit::UIHandlers::Default, 
-                        &GripperComponent::m_rangeVertical, 
-                        "Vertical range", 
-                        "Deg of cone aperture (vertical)")
-                    ->DataElement(
-                        AZ::Edit::UIHandlers::Default, 
-                        &GripperComponent::m_rangeHorizontal, 
-                        "Horizontal range", 
-                        "Deg of cone aperture (horizontal)")
+                        &GripperComponent::m_coneAngle, 
+                        "Gripper Cone angle", 
+                        "Angle [deg] of the cone in which the gripper exerts forces on object(s)")
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default, 
                         &GripperComponent::m_maxGripperForce, 
@@ -112,43 +94,53 @@ namespace ROS2
         }
     }
 
-    // TODO (maybe): populate with custom values
     AZStd::vector<AZ::Vector3> GripperComponent::GetGripperRayRotations()
     {
-        const float minVertAngle = AZ::DegToRad(-m_rangeVertical);
-        const float maxVertAngle = AZ::DegToRad(m_rangeVertical);
-        const float minHorAngle = AZ::DegToRad(-m_rangeHorizontal);
-        const float maxHorAngle = AZ::DegToRad(m_rangeHorizontal);
+        AZ_Assert(m_coneAngle > 0.0f, "Gripper Cone angle not initialized");
+        float minPitch = AZ::DegToRad(-m_coneAngle);
+        float minYaw = AZ::DegToRad(-90.0f);
 
-        const float verticalStep = (maxVertAngle - minVertAngle) / static_cast<float>(m_verticalLayers);
-        const float horizontalStep = (maxHorAngle - minHorAngle) / static_cast<float>(m_horizontalLayers);
+        int pitchLayers = (int)((2*m_coneAngle)/m_resolution);
+        int yawLayers = (int)(180/m_resolution);
 
         AZStd::vector<AZ::Vector3> rotations;
-        for (int horLayer = 0; horLayer < m_horizontalLayers; horLayer++)
+        for (int stepPitch = 0; stepPitch < pitchLayers; stepPitch++)
         {
-            for (int verLayer = 0; verLayer < m_verticalLayers; verLayer++)
+            for (int stepYaw = 0; stepYaw < yawLayers; stepYaw++)
             {
-                const float pitch = minVertAngle + verLayer * verticalStep;
-                const float yaw = minHorAngle + horLayer * horizontalStep;
-
-                rotations.emplace_back(AZ::Vector3(0.0f, pitch, yaw));
+                const float pitch = minPitch + stepPitch * AZ::DegToRad(m_resolution);
+                const float yaw = minYaw + stepYaw * AZ::DegToRad(m_resolution);
+                rotations.emplace_back(AZ::Vector3(yaw, pitch, 0.0f));
             }
         }
 
         return rotations;
     }
 
+    static AZ::Transform RotateAroundLocalHelper(float eulerAngleRadian, const AZ::Transform& TM, AZ::Vector3 axis)
+    {
+        //normalize the axis before creating rotation
+        axis.Normalize();
+        AZ::Quaternion rotate = AZ::Quaternion::CreateFromAxisAngle(axis, eulerAngleRadian);
+
+        AZ::Transform newTM = TM;
+        newTM.SetRotation((rotate * TM.GetRotation()).GetNormalized());
+        return newTM;
+    }
+
     AZStd::vector<AZ::Vector3> GripperComponent::RotationsToDirections(
-        const AZStd::vector<AZ::Vector3>& rotations, const AZ::Vector3& rootRotation)
+        const AZStd::vector<AZ::Vector3>& rotations, const AZ::Transform& rootTransform)
     {
         AZStd::vector<AZ::Vector3> directions;
+        AZ::Vector3 yAxis = rootTransform.GetBasisY();
+        AZ::Vector3 xAxis = rootTransform.GetBasisX();
         directions.reserve(rotations.size());
         for (const auto& angle : rotations)
         {
-            const auto rotation = AZ::Quaternion::CreateFromEulerRadiansZYX(
-                { 0.0f, -(angle.GetY() + rootRotation.GetY()), angle.GetZ() + rootRotation.GetZ() });
+            AZ::Transform step1TM = RotateAroundLocalHelper(angle.GetY(), rootTransform, yAxis);
+            AZ::Transform step2TM = RotateAroundLocalHelper(angle.GetX(), step1TM, xAxis);
 
-            directions.emplace_back(rotation.TransformVector(AZ::Vector3::CreateAxisX()));
+            directions.emplace_back(step2TM.TransformVector(AZ::Vector3::CreateAxisX()));
         }
 
         return directions;
@@ -183,7 +175,7 @@ namespace ROS2
 
         const AZ::Transform gripperTransform = GetEntity()->GetTransform()->GetWorldTM();
         const AZStd::vector<AZ::Vector3> rayAbsoluteDirections =
-            RotationsToDirections(m_rayRelativeRotations, gripperTransform.GetEulerRadians());
+            RotationsToDirections(m_rayRelativeRotations, gripperTransform);
 
         const AZ::Vector3 gripperPosition = gripperTransform.GetTranslation();
 
@@ -254,7 +246,8 @@ namespace ROS2
     {
         AZ_Assert(m_maxGripperForce > 0.0f, "Gripper maximum force is not configured. Unable to Apply Force on close objects.");
         float arctan_model_gripper = - 2 / 3.1416 * AZStd::atan(10*gripperDistance/m_range) + 1;
-        float force_magnitude = m_maxGripperForce / (m_horizontalLayers * m_verticalLayers) * arctan_model_gripper;
+        int total_layer = (2 * m_coneAngle) * 180 / m_resolution;
+        float force_magnitude = m_maxGripperForce / total_layer * arctan_model_gripper;
         AZ::Vector3 force = force_magnitude * normalizeDirection;
         return force;
     }
@@ -316,8 +309,6 @@ namespace ROS2
                 Visualise();
                 m_raycastPoint.clear();
             }
-            
         }
-        
     }
 } // namespace ROS2

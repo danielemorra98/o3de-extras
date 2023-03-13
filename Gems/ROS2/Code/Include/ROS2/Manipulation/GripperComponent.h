@@ -40,7 +40,7 @@ namespace ROS2
         AZStd::vector<AZStd::pair<AZ::EntityId,AZ::Vector3>> PerformRaycast();
         AZStd::vector<AZ::Vector3> GetGripperRayRotations();
         AzPhysics::SceneHandle GetPhysicsSceneFromEntityId(const AZ::EntityId& entityId);
-        AZStd::vector<AZ::Vector3> RotationsToDirections(const AZStd::vector<AZ::Vector3>& rotations, const AZ::Vector3& rootRotation);
+        AZStd::vector<AZ::Vector3> RotationsToDirections(const AZStd::vector<AZ::Vector3>& rotations, const AZ::Transform& rootTransform);
         AZ::Vector3 ComputeForce(const float gripperDistance, const AZ::Vector3 normalizeDirection);
         void Visualise();
         Gripper m_gripperType = Gripper::Vacuum;
@@ -53,10 +53,8 @@ namespace ROS2
         AzPhysics::SceneHandle m_sceneHandle{ AzPhysics::InvalidSceneHandle };
         float m_range{0.0f};
         float m_maxGripperForce{0.0f};
-        float m_rangeHorizontal{0.0f};
-        float m_rangeVertical{0.0f};
-        unsigned int m_horizontalLayers{0};
-        unsigned int m_verticalLayers{0};
+        float m_resolution{2.0f};
+        float m_coneAngle{0.0f};
         unsigned int m_ignoreLayerCollision{10};
 
         // Used only when visualisation is on - points differ since they are in global transform as opposed to local
