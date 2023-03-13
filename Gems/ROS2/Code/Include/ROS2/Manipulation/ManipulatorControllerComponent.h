@@ -43,10 +43,10 @@ namespace ROS2
         void InitializeCurrentPosition();
         void KeepStillPosition(const uint64_t deltaTimeNs);
         void ExecuteTrajectory(const uint64_t deltaTimeNs);
-        float GetJointPosition(const AZ::Component* hingeComponent);
+        float GetJointPosition(const AZ::Component& hingeComponent);
         float ComputeFFJointVelocity(const float currentPosition, const float desiredPosition, const rclcpp::Duration & duration) const;
         float ComputePIDJointVelocity(const float currentPosition, const float desiredPosition, const uint64_t & deltaTimeNs, int & jointIndex);
-        void SetJointVelocity(AZ::Component * hingeComponent, const float desiredVelocity);
+        void SetJointVelocity(AZ::Component& hingeComponent, const float desiredVelocity);
 
         AZStd::unique_ptr<FollowJointTrajectoryActionServer> m_actionServerClass;
         AZStd::string m_ROS2ControllerName;
@@ -55,11 +55,8 @@ namespace ROS2
         Controller m_controllerType = Controller::FeedForward;
         bool m_keepStillPositionInitialize{false};
         AZStd::vector<Controllers::PidConfiguration> m_pidConfigurationVector;
-        AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
         AZStd::unordered_map<AZ::Name, float> m_jointKeepStillPosition;
         trajectory_msgs::msg::JointTrajectory m_trajectory;
         rclcpp::Time m_timeStartingExecutionTraj;
-
-        using FollowJointTrajectory = control_msgs::action::FollowJointTrajectory;
     };
 } // namespace ROS2

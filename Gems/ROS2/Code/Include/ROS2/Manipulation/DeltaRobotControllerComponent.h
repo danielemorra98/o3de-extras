@@ -30,7 +30,8 @@ namespace ROS2
 
     private:
         void InitializePid();
-        void InitializeCurrentPosition();
+        void InitializePositionMsg();
+        void InitializeMotorConfiguration();
         void UpdateTargetState(const sensor_msgs::msg::JointState::SharedPtr msg);
         // void KeepStillPosition(const uint64_t deltaTimeNs);
         void GoToTarget(const uint64_t deltaTimeNs);

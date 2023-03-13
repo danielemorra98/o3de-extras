@@ -1,15 +1,15 @@
 #pragma once
 
 #include <AzCore/Component/Component.h>
+#include <AzCore/Component/TickBus.h>
+#include <Source/HingeJointComponent.h>
 #include <rclcpp/publisher.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
-#include <AzCore/Component/TickBus.h>
 
 namespace ROS2
 {
-    //! A component responsible for publishing the 
-    //! joint positions on ROS2 /joint_states topic
-    //!< @see <a href="http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/JointState.html">jointState message</a>.
+    //! A component responsible for publishing the joint positions on ROS2 /joint_states topic.
+    //!< @see <a href="https://docs.ros2.org/latest/api/sensor_msgs/msg/JointState.html">jointState message</a>.
     class JointPublisherComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
@@ -25,19 +25,20 @@ namespace ROS2
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
         //////////////////////////////////////////////////////////////////////////
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
+        static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
         static void Reflect(AZ::ReflectContext* context);
 
-        AZStd::unordered_map<AZ::Name, AZ::EntityId> m_hierarchyMap;
-        AZStd::unordered_map<AZ::Name, AZ::EntityId> &GetHierarchyMap();
+        AZStd::unordered_map<AZ::Name, PhysX::HingeJointComponent> &GetHierarchyMap();
 
     private:
         void PublishMessage();
         void UpdateMessage();
-        void InitializeMap();
+        void Initialize();
+        AZStd::string GetFrameID() const;
 
-        float GetJointPosition(const AZ::Component* hingeComponent) const;
-        void InitializeJointStateMessage();
+        float GetJointPosition(const AZ::Component& hingeComponent) const;
 
+        AZStd::unordered_map<AZ::Name, PhysX::HingeJointComponent> m_hierarchyMap;
         std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::JointState>> m_jointstatePublisher;
         sensor_msgs::msg::JointState m_jointstateMsg;
         bool m_initialized{false};
